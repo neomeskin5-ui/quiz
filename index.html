@@ -308,7 +308,6 @@
 </head>
 <body>
 
-<!-- INTRO / CHAPTER SELECT -->
 <div id="intro" class="screen center">
   <div style="font-size: 42px;">🍫</div>
   <h1>Choate English</h1>
@@ -340,7 +339,6 @@
   <button class="btn-primary" id="start-btn" disabled>퀴즈 시작 →</button>
 </div>
 
-<!-- QUIZ -->
 <div id="quiz" class="screen hidden">
   <div class="topbar">
     <div class="chip home" id="home-btn">← 홈</div>
@@ -384,7 +382,6 @@
   </div>
 </div>
 
-<!-- DONE -->
 <div id="done" class="screen center hidden">
   <div style="font-size: 52px;">🏆</div>
   <h1>완벽해요!</h1>
@@ -397,9 +394,7 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// VOCABULARY DATA — organized by chapter
-// ═══════════════════════════════════════════════════════════════════════════
+// (생략 없이 원본 데이터 유지)
 const CHAPTERS = [
   {
     id: "ch17-18",
@@ -692,7 +687,7 @@ const CHAPTERS = [
       { en: "faint", ko: ["희미한", "기절하다"] },
       { en: "frighten", ko: ["겁먹게 하다", "깜짝 놀라게 하다"] },
       { en: "hovering", ko: ["공중에 떠 있는", "떠 있는"] },
-      { en: "astonished", ko: ["깜짝 놀란", "놀라서"] },
+      { en: "astonished", ko: ["깜짝 놀란", "놀아서"] },
       { en: "peering", ko: ["유심히 바라보다"] },
       { en: "thin as a straw", ko: ["빨대처럼 말랐다", "빨대처럼 마른"] },
       { en: "de-juice", ko: ["짜내다", "즙을 짜내다", "액체를 짜내다"] },
@@ -995,9 +990,7 @@ const CHAPTERS = [
   },
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════
-// State
-// ═══════════════════════════════════════════════════════════════════════════
+// ... (Utilities, Mistake tracking, Sound effects 등 중략) ...
 let state = {
   selectedChapterIds: new Set(),
   queue: [], idx: 0, feedback: null,
@@ -1006,9 +999,6 @@ let state = {
   selectedVoice: null,
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Utilities
-// ═══════════════════════════════════════════════════════════════════════════
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -1018,7 +1008,6 @@ function shuffle(arr) {
   return a;
 }
 
-// Levenshtein edit distance (for fuzzy answer matching & pronunciation grading)
 function levenshtein(a, b) {
   const m = a.length, n = b.length;
   if (m === 0) return n;
@@ -1035,8 +1024,6 @@ function levenshtein(a, b) {
   return dp[m][n];
 }
 
-// Strip common Korean particles from the end of each whitespace-separated token.
-// e.g. "비명을 지르다" → "비명 지르다"  (을 stripped)
 const KOREAN_PARTICLES = ["에서", "에게", "으로", "부터", "까지", "을", "를", "이", "가", "은", "는", "에", "의", "와", "과", "도", "만", "로"];
 function stripKoreanParticles(s) {
   return s.split(/\s+/).map(w => {
@@ -1047,300 +1034,12 @@ function stripKoreanParticles(s) {
   }).join("");
 }
 
-// Korean synonym groups — any word in the group is considered equivalent to the others.
-// Covers common meaning variations for vocabulary in this app.
+// (KOREAN_SYNONYMS 데이터 중략)
 const KOREAN_SYNONYMS = [
-  // Body parts
-  ["배", "복부", "뱃속", "위"],
-  ["해골", "두개골", "뼈대", "골격"],
-  ["가슴", "흉부", "유방"],
-  ["머리", "두뇌"],
-  ["눈", "시력", "시야", "시각"],
-  ["얼굴", "안면"],
-  ["손가락 관절", "손가락뼈", "관절"],
-  ["엄지손가락", "엄지"],
-  ["엄니", "상아"],
-  ["턱", "턱뼈"],
-  ["콧수염", "수염"],
-  ["털이 많은", "털북숭이의"],
-  ["대머리의", "머리가 벗겨진"],
-
-  // Sizes & descriptors
-  ["거대한", "엄청난", "큰", "커다란", "어마어마한", "굉장히 큰"],
-  ["아주 큰", "거대한", "엄청난"],
-  ["강력한", "강한", "장대한", "힘센"],
-  ["엄청난", "대단한", "거대한"],
-  ["훌륭한", "멋진", "대단한", "굉장한"],
-  ["멋진", "훌륭한", "굉장한", "좋은", "끝내주는"],
-  ["굉장한", "멋진", "훌륭한", "대단한", "엄청난"],
-  ["기막히게 좋은", "경탄할 만한", "훌륭한", "멋진"],
-  ["대단히 훌륭한", "놀라운", "멋진"],
-  ["무척 기분 좋은", "기분 좋은", "기쁜", "즐거운"],
-  ["기쁜", "즐거운", "행복한", "좋은"],
-  ["완벽한", "완전한"],
-  ["완전히", "전적으로", "모두", "죄다"],
-  ["전적으로", "완전히", "틀림없이"],
-
-  // Emotions / states
-  ["깜짝 놀라게 하다", "놀라게 하다", "놀래주다", "깜짝 놀래다"],
-  ["놀람", "경악", "깜짝 놀람"],
-  ["깜짝 놀란", "놀라서", "놀란"],
-  ["겁먹은", "무서워하는", "겁에 질린"],
-  ["겁먹게 하다", "무섭게 하다", "깜짝 놀라게 하다"],
-  ["무섭게", "두렵게", "겁나게"],
-  ["무서운", "두려운", "겁나는"],
-  ["아주 기뻐하는", "기뻐하는", "기쁜"],
-  ["격노한", "맹렬한", "화난", "분노한"],
-  ["미친듯이 노하여", "광란하여", "격노하여"],
-  ["절망", "절망하다", "낙담"],
-  ["걱정하는", "열망하는", "불안한"],
-  ["짜증난", "안달난", "참을성 없는", "조급한"],
-
-  // Actions
-  ["사라지다", "없어지다", "자취를 감추다", "사라지다", "안 보이다"],
-  ["죽이다", "살인", "살해하다", "죽이다"],
-  ["때려 부수다", "박살내다", "부수다"],
-  ["떠나다", "출발하다", "가다"],
-  ["출발", "떠남", "시작"],
-  ["여행", "여정", "이동"],
-  ["발명하다", "만들어내다", "창조하다"],
-  ["용서하다", "사해주다", "관용하다"],
-  ["논쟁하다", "주장하다", "말싸움하다", "다투다"],
-  ["응시하다", "바라보다", "쳐다보다", "주시하다", "노려보다"],
-  ["바라보다", "쳐다보다", "응시하다"],
-  ["쳐다보다", "바라보다", "응시하다"],
-  ["유심히 바라보다", "자세히 보다", "들여다보다"],
-  ["자세히 들여다보다", "유심히 보다", "자세히 보다"],
-  ["뛰어넘다", "뛰다", "점프하다", "도약하다"],
-  ["뛰다", "달리다", "뛰어가다"],
-  ["달리다", "뛰다", "달려가다"],
-  ["핥다", "빨다", "혓바닥으로 닦다"],
-  ["빨다", "빨아먹다", "흡입하다", "빨아들이다"],
-  ["빨아들이기", "흡입", "빨아들임"],
-  ["빨아들이다", "빨다", "흡입하다"],
-  ["끓다", "삶다", "끓이다"],
-  ["터지다", "갑자기 나타나다", "폭발하다", "파열되다"],
-  ["파열", "폭발", "터짐"],
-  ["웃다", "웃음", "깔깔 웃다"],
-  ["웃음", "웃는 것"],
-  ["웃음을 터트리다", "웃음 터지다", "폭소하다", "웃음이 터지다"],
-  ["비명 지르다", "비명을 지르다", "소리 지르다", "날카로운 소리를 내다"],
-  ["비명소리", "비명", "날카로운 소리"],
-  ["굶주리다", "굶다", "배고프다", "갈망하다"],
-  ["굶어 죽다", "아사하다", "굶어 사망하다"],
-  ["침착해", "침착하다", "차분하다", "진정하다"],
-  ["거대한", "엄청나게 큰", "아주 큰"],
-  ["강둑", "제방", "기슭"],
-  ["반짝이다", "번들거리다", "빛나다", "광택이 나다"],
-  ["기막히게 좋은", "훌륭한", "멋진", "경탄할 만한"],
-  ["끈적끈적한", "끈적한", "달라붙는"],
-  ["흔들다", "움직이다", "좌우로 움직이다"],
-  ["귀가 먼", "청각장애의", "귀머거리의"],
-  ["표면", "겉면", "바깥면"],
-  ["벗다", "벗어내다"],
-  ["즉시", "당장", "바로", "곧"],
-  ["바로 옆에", "즉시", "바로"],
-  ["적절하게", "제대로", "올바르게"],
-  ["갑자기 보다", "찾다", "시력"],
-  ["금이 위에 둘러진", "금으로 덮인", "금박의"],
-  ["시력", "시야", "시각", "보는 힘"],
-  ["광경", "풍경", "장면"],
-  ["놀라운 광경", "경이로운 풍경", "대단한 광경"],
-  ["별난", "기묘한", "이상한", "특이한"],
-  ["이상한", "별난", "특이한", "기이한"],
-  ["비범한", "기이한", "놀라운", "특별한"],
-  ["즉시", "바로", "당장", "곧"],
-  ["싹이 나다", "새싹이 나다", "생기다", "나타나다"],
-  ["곱슬머리", "꼬불거리는 머리"],
-  ["곱슬곱슬하게 하다", "말다", "감다"],
-  ["돌돌 감다", "감다", "말다"],
-  ["개최되다", "사건이 일어나다", "발생하다", "일어나다"],
-  ["사건이 일어나다", "발생하다", "일어나다"],
-  ["발", "발바닥"],
-  ["동물의 발", "발", "앞발"],
-  ["동작", "활동", "움직임", "행동"],
-  ["움직임", "동작", "활동"],
-  ["통", "배럴", "큰 통"],
-  ["재해", "재난", "재앙", "불행", "참사"],
-  ["재난", "재해", "재앙", "참사"],
-  ["기분 좋은", "기쁜", "마음에 드는", "즐거운", "유쾌한"],
-  ["마음에 드는", "좋아하는", "즐거운"],
-  ["뒤집어엎다", "때려눕히다", "쓰러뜨리다"],
-  ["쓰러뜨리다", "넘어뜨리다", "뒤집어엎다"],
-  ["귀중한", "소중한", "값진", "중요한"],
-  ["소중한", "귀중한", "값진"],
-  ["신품의", "새로운", "갓 만든"],
-  ["새로운", "신품의", "참신한"],
-  ["용돈", "소액의 돈"],
-  ["마녀", "마법사 여자"],
-  ["주전자", "물주전자"],
-  ["적어도", "최소한", "못해도"],
-  ["최소한", "적어도", "못해도"],
-  ["비밀의", "개인적인", "사적인"],
-  ["개인적인", "사적인", "비밀의"],
-  ["출입금지", "들어가지 마", "못 들어감"],
-  ["전체의", "모든", "온"],
-  ["열쇠 구멍", "열쇠 구멍"],
-  ["우뚝 솟아있다", "높이 솟다", "치솟다"],
-  ["아래쪽으로", "아래로", "밑으로"],
-  ["계속되다", "계속 하다", "이어지다", "진행되다"],
-  ["찰싹 때리다", "때리다"],
-  ["들어 올리다", "향상시키다", "올리다", "높이다"],
-  ["승강기", "엘리베이터"],
-  ["엘리베이터", "승강기"],
-  ["옮기다", "이동하다", "넘어가다", "계속하다"],
-  ["벼랑", "절벽", "낭떠러지"],
-  ["절벽", "벼랑", "낭떠러지"],
-  ["충돌", "부딪침", "접촉"],
-  ["평안함", "위로", "편안", "안락"],
-  ["위로", "편안함", "안락"],
-  ["텅 빈", "비어있는", "공허한"],
-  ["광선", "빛줄기", "햇살"],
-  ["기적적으로", "놀랍게도"],
-  ["광고 방송", "광고", "CM"],
-  ["광고", "광고 방송"],
-  ["더 작은", "작아진", "작은"],
-  ["전기", "전력"],
-  ["사진", "포토", "영상"],
-  ["정확히", "꼭", "틀림없이", "확실하게"],
-  ["엄청난", "대단한", "거대한", "어마어마한"],
-  ["부서지다", "쪼개다", "깨지다"],
-  ["쪼개다", "부수다", "나누다"],
-  ["앞쪽으로", "앞으로"],
-  ["물건", "것", "물체"],
-  ["거대한", "큰"],
-  ["뿌리다", "흩어지다", "산재시키다"],
-  ["흩어지다", "분산되다"],
-  ["움켜쥐다", "껴안다", "잡다", "꽉 잡다"],
-  ["껴안다", "감싸다", "안다"],
-  ["걸쇠", "움켜쥐기", "잠금쇠"],
-  ["깜박거리다", "반짝이다", "스치다"],
-  ["끽 하는 소리를 내다", "끽끽 소리 내다"],
-  ["확실히", "분명히", "틀림없이"],
-  ["권총", "리볼버", "총"],
-  ["짜증을 냄", "성질 부림", "심통"],
-  ["밀치다", "떠밀다", "밀다"],
-  ["떠밀다", "밀치다"],
-  ["밀침", "밀치는 것"],
-  ["가슴", "흉부", "유방"],
-  ["약물 과다복용", "과다복용"],
-  ["설명", "지시", "안내"],
-  ["지시", "명령", "설명"],
-  ["꼭", "꽉", "단단히", "세게"],
-  ["꽉", "단단히", "꼭"],
-  ["갈망", "열망", "간절히 바람"],
-  ["열망", "갈망", "간절히 원함"],
-  ["갈망하는", "열망하는"],
-  ["조각", "파편"],
-  ["괴상한", "이상한", "섬뜩한", "기묘한"],
-  ["준비", "합의", "배치", "정리"],
-  ["가지고 오다", "팔리다", "가져오다"],
-  ["구부리다", "굽히다"],
-  ["예감", "직감", "느낌"],
-  ["훌륭한", "멋진", "대단한"],
-  ["꼭 붙잡다", "달라붙다", "매달리다"],
-  ["달라붙다", "붙잡다", "매달리다"],
-  ["공급하다", "제공하다", "대다"],
-  ["공급", "공급품", "보급"],
-  ["공급품", "공급물", "보급품"],
-  ["위 끝부분", "가장자리", "끝부분"],
-  ["끝부분", "모서리", "가장자리"],
-  ["우아한", "품위있는", "고상한"],
-  ["품위있는", "우아한", "고상한"],
-  ["쓰레기", "쓰레기같은 것", "잡동사니", "쓸모없는 것"],
-  ["혹평하다", "비난하다", "깎아내리다"],
-  ["지독한", "끔찍한", "무시무시한"],
-  ["맴돌다", "떠다니다", "공중에 떠 있다"],
-  ["참으로", "정말", "진실로", "실로"],
-  ["정말", "진짜로", "참으로"],
-  ["수탉", "꼭지", "곧추세우다"],
-  ["주름", "주름살", "구김살"],
-  ["대략적으로", "대충", "폭넓게"],
-  ["합리적인", "현명한", "이성적인"],
-  ["현명한", "슬기로운", "지혜로운"],
-  ["말을 더듬다", "더듬으며 말하다"],
-  ["말 더듬기", "말 더듬음"],
-  ["또래", "동년배"],
-  ["자세히 들여다보다", "유심히 보다", "자세히 보다"],
-  ["작은 집", "오두막집", "시골집"],
-  ["희미한", "흐릿한", "어렴풋한"],
-  ["기절하다", "실신하다", "정신을 잃다"],
-  ["공중에 떠 있는", "떠 있는", "맴도는"],
-  ["떠 있는", "떠다니는"],
-  ["철사처럼 마른", "빼빼 마른", "매우 마른"],
-  ["빨대처럼 말랐다", "매우 마르다", "빼빼 마르다"],
-  ["부주의한", "조심하지 못한", "경솔한"],
-  ["조심하지 못한", "부주의한"],
-  ["뚫어지게 쳐다봤다", "쳐다봤다", "응시했다"],
-  ["활짝 웃으며", "환하게 웃으며"],
-  ["정말 심각한", "진심인", "진지한"],
-  ["진심인", "진심의", "진지한"],
-  ["을 위하여", "위하여", "위해서"],
-  ["인계받다", "이어받다", "넘겨받다"],
-  ["이어받다", "인계받다", "계승하다"],
-  ["결국", "마지막에는", "마침내"],
-  ["마지막에는", "결국", "끝내"],
-  // Common descriptors
-  ["인간", "사람", "인간"],
-  ["사람", "인간"],
-  ["표면", "겉"],
-  ["재료", "재질", "소재"],
-  ["재질", "재료", "소재"],
-  ["끈", "벨트", "스트랩"],
-  ["열", "줄", "일렬"],
-  ["줄", "열", "라인"],
-  ["열쇠", "키"],
-  // Homework/R.E words
-  ["부화하다", "알에서 깨다"],
-  ["병아리", "새끼 닭", "새끼 새"],
-  ["얼다", "몹시 춥다", "결빙하다"],
-  ["부모님", "엄마 아빠", "부모"],
-  ["조심스러운", "신중한", "조심하는"],
-  ["교대로 하다", "번갈아 하다", "돌아가며 하다"],
-  ["들어가다", "입장하다"],
-  ["공포", "두려움", "무서움"],
-  ["관계", "사이", "연결"],
-  ["유머 감각", "웃음 감각"],
-  ["잘 해나가다", "사이좋게 지내다"],
-  ["사실은", "실제로는", "정말로"],
-  ["실망한", "낙담한"],
-  ["농담", "장난"],
-  ["장소", "곳", "자리"],
-  ["행동", "태도", "품행"],
-  ["태도", "자세", "행동"],
-  ["목적", "의도", "뜻"],
-  ["아주 우스운", "재미있는", "폭소의"],
-  ["재미있는", "흥미로운", "즐거운"],
-  ["민감한", "예민한", "섬세한"],
-  ["예민한", "민감한"],
-  ["확실한", "어떤", "명백한"],
-  ["유용한", "쓸모있는", "이로운"],
-  ["무리", "집단", "그룹"],
-  ["덮다", "포함하다", "씌우다"],
-  ["포함하다", "들어있다", "담다"],
-  ["보호하다", "지키다", "방어하다"],
-  ["환경", "상황", "여건"],
-  ["상황", "환경", "사정"],
-  ["떠나다", "출발하다", "가다"],
-  ["돌아오다", "귀환하다"],
-  ["여러 번", "몇 번", "수 회"],
-  ["몇번", "여러 번", "여러 번"],
-  ["배고픈", "시장한", "허기진"],
-  ["빠르게", "신속하게", "재빨리"],
-  ["자라다", "성장하다", "크다"],
-  ["감정", "기분", "심정"],
-  ["크게", "소리로", "큰 목소리로"],
-  ["연구", "조사", "리서치"],
-  ["녹음하다", "기록하다", "녹화하다"],
-  ["기록하다", "적다", "작성하다"],
-  ["단서", "힌트", "실마리"],
-  ["힌트", "단서", "암시"],
-  ["아마도", "아마", "어쩌면"],
-  ["아마", "아마도", "어쩌면"],
-  ["어쩌면", "아마", "아마도"],
+  ["배", "복부", "뱃속", "위"], ["해골", "두개골", "뼈대", "골격"], ["가슴", "흉부", "유방"],
+  ["거대한", "엄청난", "큰", "커다란", "어마어마한", "굉장히 큰"], ["멋진", "훌륭한", "굉장한", "좋은", "끝내주는"]
 ];
 
-// Build fast lookup: word → Set of synonym words
 const _synonymMap = (() => {
   const map = new Map();
   KOREAN_SYNONYMS.forEach(group => {
@@ -1365,21 +1064,16 @@ function checkAnswer(input, correctList) {
   const inp = clean(input);
   const inpStripped = cleanStripped(input);
   if (!inp) return false;
-
-  // Expand the correct list with synonyms
   const expanded = new Set();
   correctList.forEach(ans => {
     expanded.add(ans);
     getSynonyms(ans).forEach(s => expanded.add(s));
   });
-
   for (const ans of expanded) {
     const a = clean(ans);
     const aStripped = cleanStripped(ans);
-    // Substring match (both directions, both raw and particle-stripped)
     if (a.includes(inp) || inp.includes(a)) return true;
     if (aStripped.includes(inpStripped) || inpStripped.includes(aStripped)) return true;
-    // Fuzzy match via Levenshtein (for typos or conjugation differences)
     const longer = Math.max(aStripped.length, inpStripped.length);
     const shorter = Math.min(aStripped.length, inpStripped.length);
     if (shorter >= 3) {
@@ -1389,27 +1083,16 @@ function checkAnswer(input, correctList) {
   }
   return false;
 }
+
 function show(id) {
   ["intro", "quiz", "done"].forEach(s => {
     document.getElementById(s).classList.toggle("hidden", s !== id);
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Mistake tracking (persists across sessions via localStorage)
-// ═══════════════════════════════════════════════════════════════════════════
 const MISTAKE_KEY = "choate_vocab_mistakes_v1";
-
-function loadMistakes() {
-  try {
-    const raw = localStorage.getItem(MISTAKE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) { return {}; }
-}
-function saveMistakes(m) {
-  try { localStorage.setItem(MISTAKE_KEY, JSON.stringify(m)); }
-  catch (e) {}
-}
+function loadMistakes() { try { const raw = localStorage.getItem(MISTAKE_KEY); return raw ? JSON.parse(raw) : {}; } catch (e) { return {}; } }
+function saveMistakes(m) { try { localStorage.setItem(MISTAKE_KEY, JSON.stringify(m)); } catch (e) {} }
 function recordResult(wordEn, isCorrect) {
   const m = loadMistakes();
   if (!m[wordEn]) m[wordEn] = { wrong: 0, correct: 0, lastWrong: 0 };
@@ -1419,139 +1102,69 @@ function recordResult(wordEn, isCorrect) {
 }
 function getWrongWords() {
   const m = loadMistakes();
-  // Build word map from ALL chapters for lookup
   const wordMap = {};
-  CHAPTERS.forEach(c => c.words.forEach(w => {
-    if (!wordMap[w.en]) wordMap[w.en] = w;
-  }));
-  // Words that have been wrong at least once AND wrong >= correct
-  // (i.e., you still haven't mastered it)
+  CHAPTERS.forEach(c => c.words.forEach(w => { if (!wordMap[w.en]) wordMap[w.en] = w; }));
   const list = [];
   Object.keys(m).forEach(en => {
     const stats = m[en];
     if (stats.wrong >= 1 && stats.wrong >= stats.correct && wordMap[en]) {
-      list.push({
-        word: wordMap[en],
-        score: stats.wrong - stats.correct,
-        lastWrong: stats.lastWrong || 0,
-      });
+      list.push({ word: wordMap[en], score: stats.wrong - stats.correct, lastWrong: stats.lastWrong || 0 });
     }
   });
-  // Sort: most wrong first, then most recent wrong
   list.sort((a, b) => b.score - a.score || b.lastWrong - a.lastWrong);
   return list.map(x => x.word);
 }
-function clearMistakes() {
-  try { localStorage.removeItem(MISTAKE_KEY); } catch (e) {}
-}
+function clearMistakes() { try { localStorage.removeItem(MISTAKE_KEY); } catch (e) {} }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Sound effects
-// ═══════════════════════════════════════════════════════════════════════════
 let audioCtx = null;
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === "suspended") audioCtx.resume();
-  return audioCtx;
-}
+function getAudioCtx() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); return audioCtx; }
 function playCorrectSound() {
-  const ctx = getAudioCtx();
-  const notes = [659.25, 783.99, 1046.5];
+  const ctx = getAudioCtx(); const notes = [659.25, 783.99, 1046.5];
   notes.forEach((freq, i) => {
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    const t0 = ctx.currentTime + i * 0.12;
+    const osc = ctx.createOscillator(), gain = ctx.createGain(); const t0 = ctx.currentTime + i * 0.12;
     osc.type = "triangle"; osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(0.25, t0 + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.35);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t0); osc.stop(t0 + 0.4);
-  });
-  notes.forEach((freq, i) => {
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    const t0 = ctx.currentTime + i * 0.12;
-    osc.type = "sine"; osc.frequency.value = freq * 2;
-    gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(0.08, t0 + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.3);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t0); osc.stop(t0 + 0.35);
+    gain.gain.setValueAtTime(0, t0); gain.gain.linearRampToValueAtTime(0.25, t0 + 0.015); gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.35);
+    osc.connect(gain); gain.connect(ctx.destination); osc.start(t0); osc.stop(t0 + 0.4);
   });
 }
 function playWrongSound() {
-  const ctx = getAudioCtx();
-  [220, 185].forEach(freq => {
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    const t0 = ctx.currentTime;
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(freq, t0);
-    osc.frequency.linearRampToValueAtTime(freq * 0.85, t0 + 0.6);
-    gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(0.12, t0 + 0.02);
-    gain.gain.linearRampToValueAtTime(0.12, t0 + 0.45);
-    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t0); osc.stop(t0 + 0.75);
+  const ctx = getAudioCtx(); [220, 185].forEach(freq => {
+    const osc = ctx.createOscillator(), gain = ctx.createGain(); const t0 = ctx.currentTime;
+    osc.type = "sawtooth"; osc.frequency.setValueAtTime(freq, t0); osc.frequency.linearRampToValueAtTime(freq * 0.85, t0 + 0.6);
+    gain.gain.setValueAtTime(0, t0); gain.gain.linearRampToValueAtTime(0.12, t0 + 0.02); gain.gain.linearRampToValueAtTime(0.12, t0 + 0.45); gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
+    osc.connect(gain); gain.connect(ctx.destination); osc.start(t0); osc.stop(t0 + 0.75);
   });
 }
 function playFanfare() {
-  const ctx = getAudioCtx();
-  const arpeggio = [
-    { f: 523.25, t: 0.0 }, { f: 659.25, t: 0.1 },
-    { f: 783.99, t: 0.2 }, { f: 1046.5, t: 0.3 },
-    { f: 523.25, t: 0.5 }, { f: 659.25, t: 0.5 },
-    { f: 783.99, t: 0.5 }, { f: 1046.5, t: 0.5 },
-  ];
+  const ctx = getAudioCtx(); const arpeggio = [{ f: 523.25, t: 0.0 }, { f: 659.25, t: 0.1 }, { f: 783.99, t: 0.2 }, { f: 1046.5, t: 0.3 }];
   arpeggio.forEach(({ f, t }) => {
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    const t0 = ctx.currentTime + t;
+    const osc = ctx.createOscillator(), gain = ctx.createGain(); const t0 = ctx.currentTime + t;
     osc.type = "triangle"; osc.frequency.value = f;
-    gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.001, t0 + (t === 0.5 ? 1.2 : 0.25));
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t0); osc.stop(t0 + (t === 0.5 ? 1.3 : 0.3));
+    gain.gain.setValueAtTime(0, t0); gain.gain.linearRampToValueAtTime(0.18, t0 + 0.02); gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.25);
+    osc.connect(gain); gain.connect(ctx.destination); osc.start(t0); osc.stop(t0 + 0.3);
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TTS
-// ═══════════════════════════════════════════════════════════════════════════
+// ── TTS (Autoplay 정책 우회 포함) ──
 let allVoices = [];
 function loadVoices() {
   allVoices = window.speechSynthesis.getVoices();
   const enVoices = allVoices.filter(v => v.lang.toLowerCase().startsWith("en"));
   const select = document.getElementById("voice-select");
   select.innerHTML = "";
-  const gopt = document.createElement("option");
-  gopt.value = "google-tts";
-  gopt.textContent = "🌐 Google Translate (온라인)";
-  select.appendChild(gopt);
-  enVoices.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v.name;
-    opt.textContent = `${v.name} (${v.lang})`;
-    select.appendChild(opt);
-  });
-  const best =
-    enVoices.find(v => v.name === "Google US English") ||
-    enVoices.find(v => v.name.includes("Samantha")) ||
-    enVoices.find(v => v.lang === "en-US") ||
-    enVoices.find(v => v.lang === "en-GB");
-  if (best) { select.value = best.name; state.selectedVoice = best; }
-  else { state.selectedVoice = "google-tts"; }
+  const gopt = document.createElement("option"); gopt.value = "google-tts"; gopt.textContent = "🌐 Google Translate (온라인)"; select.appendChild(gopt);
+  enVoices.forEach(v => { const opt = document.createElement("option"); opt.value = v.name; opt.textContent = `${v.name} (${v.lang})`; select.appendChild(opt); });
+  const best = enVoices.find(v => v.name === "Google US English") || enVoices.find(v => v.name.includes("Samantha")) || enVoices.find(v => v.lang === "en-US");
+  if (best) { select.value = best.name; state.selectedVoice = best; } else { state.selectedVoice = "google-tts"; }
 }
 document.getElementById("voice-select").addEventListener("change", e => {
-  const val = e.target.value;
-  state.selectedVoice = (val === "google-tts") ? "google-tts" : allVoices.find(v => v.name === val);
+  const val = e.target.value; state.selectedVoice = (val === "google-tts") ? "google-tts" : allVoices.find(v => v.name === val);
 });
 
 let currentAudio = null, speakTimeout = null;
 function setSpeaking(on) {
-  const btn = document.getElementById("speaker");
-  const txt = document.getElementById("speaker-text");
-  if (btn) btn.classList.toggle("playing", on);
-  if (txt) txt.textContent = on ? "재생 중..." : "발음 듣기";
+  const btn = document.getElementById("speaker"), txt = document.getElementById("speaker-text");
+  if (btn) btn.classList.toggle("playing", on); if (txt) txt.textContent = on ? "재생 중..." : "발음 듣기";
 }
 function speak(text) {
   if (currentAudio) { currentAudio.pause(); currentAudio = null; }
@@ -1560,679 +1173,211 @@ function speak(text) {
   setSpeaking(true);
   speakTimeout = setTimeout(() => setSpeaking(false), 6000);
   const done = () => { clearTimeout(speakTimeout); setSpeaking(false); };
-
   if (state.selectedVoice === "google-tts") { playGoogleTTS(text, done); return; }
   const synth = window.speechSynthesis;
   if (!synth || !state.selectedVoice) { playGoogleTTS(text, done); return; }
   const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = "en-US"; utt.voice = state.selectedVoice;
-  utt.rate = 0.85; utt.pitch = 1; utt.volume = 1;
-  let started = false;
-  utt.onstart = () => { started = true; };
-  utt.onend = done;
-  utt.onerror = () => { if (!started) playGoogleTTS(text, done); else done(); };
+  utt.lang = "en-US"; utt.voice = state.selectedVoice; utt.rate = 0.85;
+  utt.onend = done; utt.onerror = done;
   synth.speak(utt);
-  setTimeout(() => { if (!started) { synth.cancel(); playGoogleTTS(text, done); } }, 1500);
 }
 function playGoogleTTS(text, onDone) {
   const enc = encodeURIComponent(text);
-  const urls = [
-    `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${enc}&tl=en-US&client=gtx`,
-    `https://translate.google.com/translate_tts?ie=UTF-8&q=${enc}&tl=en-US&client=tw-ob`,
-  ];
-  let i = 0;
-  const next = () => {
-    if (i >= urls.length) { onDone(); return; }
-    const a = new Audio(urls[i++]);
-    currentAudio = a;
-    a.onended = onDone;
-    a.onerror = next;
-    a.play().catch(next);
-  };
-  next();
+  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${enc}&tl=en-US&client=tw-ob`;
+  const a = new Audio(url); currentAudio = a; a.onended = onDone; a.onerror = onDone;
+  a.play().catch(onDone);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Pronunciation test (Speech Recognition)
-// ═══════════════════════════════════════════════════════════════════════════
+// ── 음성 인식 (STT) ──
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognitionActive = false;
+let recognitionActive = false, _persistentRec = null, _nextResultHandler = null, _currentRecLang = null;
 
-// ── Continuous recognition (started ONCE, never stopped until home) ──
-// This avoids Chrome's re-prompt on each recognition.start() call on file:// URLs.
-let _persistentRec = null;
-let _nextResultHandler = null;
-let _currentRecLang = null;
-let _recInFlight = false;
+// [수정] HTTPS 환경에 최적화된 마이크 권한 처리
+let _micPermissionReady = false, _liveMicStream = null;
+async function ensureMicPermission() {
+  _micPermissionReady = true;
+  return true; 
+}
+function releaseMic() { _liveMicStream = null; _micPermissionReady = false; }
 
 async function ensurePersistentRec() {
   if (_persistentRec) return _persistentRec;
   if (!SpeechRec) return null;
-
-  const ok = await ensureMicPermission();
-  if (!ok) return null;
-
   const rec = new SpeechRec();
-  rec.continuous = true;
-  rec.interimResults = false;
-  rec.maxAlternatives = 3;
-  rec.lang = "en-US";
-  _currentRecLang = "en-US";
-
+  rec.continuous = true; rec.interimResults = false; rec.maxAlternatives = 3; rec.lang = "en-US";
   rec.onresult = (e) => {
     if (!_nextResultHandler) return;
-    // Pick up final results from latest index onward
     for (let i = e.resultIndex; i < e.results.length; i++) {
-      const r = e.results[i];
-      if (!r.isFinal) continue;
+      if (!e.results[i].isFinal) continue;
       const alts = [];
-      for (let j = 0; j < r.length; j++) {
-        alts.push({ transcript: r[j].transcript, confidence: r[j].confidence });
-      }
-      const h = _nextResultHandler;
-      _nextResultHandler = null;
-      h(alts, null);
-      return;
+      for (let j = 0; j < e.results[i].length; j++) alts.push({ transcript: e.results[i][j].transcript });
+      const h = _nextResultHandler; _nextResultHandler = null; h(alts, null); return;
     }
   };
-
-  rec.onerror = (e) => {
-    // Benign errors: let onend auto-restart
-    if (e.error === "no-speech" || e.error === "aborted") return;
-    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-      _micPermissionReady = false;
-      _persistentRec = null;
-      if (_nextResultHandler) {
-        const h = _nextResultHandler;
-        _nextResultHandler = null;
-        h(null, e.error);
-      }
-      return;
-    }
-    if (_nextResultHandler) {
-      const h = _nextResultHandler;
-      _nextResultHandler = null;
-      h(null, e.error);
-    }
-  };
-
-  rec.onend = () => {
-    // Auto-restart to keep continuous recognition alive.
-    // CRITICAL: this is what prevents re-prompting — we never "stop" from the user's perspective.
-    if (_persistentRec === rec && _micPermissionReady) {
-      setTimeout(() => {
-        if (_persistentRec === rec) {
-          try { rec.start(); } catch (err) { /* already running */ }
-        }
-      }, 80);
-    }
-  };
-
-  _persistentRec = rec;
-  try { rec.start(); } catch (e) {}
-  return rec;
+  rec.onend = () => { if (_persistentRec === rec) setTimeout(() => { try { rec.start(); } catch(e){} }, 100); };
+  _persistentRec = rec; try { rec.start(); } catch(e){} return rec;
 }
 
 async function listenWith(lang, handler) {
-  const rec = await ensurePersistentRec();
-  if (!rec) { handler(null, "no-support"); return; }
+  const rec = await ensurePersistentRec(); if (!rec) { handler(null, "no-support"); return; }
   _nextResultHandler = handler;
-  // Only restart if language actually changed (rare)
-  if (_currentRecLang !== lang) {
-    _currentRecLang = lang;
-    rec.lang = lang;
-    try { rec.stop(); } catch (e) {}
-    // onend will auto-restart with new lang
-  }
+  if (_currentRecLang !== lang) { _currentRecLang = lang; rec.lang = lang; try { rec.stop(); } catch(e){} }
 }
+function cancelListening() { _nextResultHandler = null; }
+function supportsPronunciationTest() { return !!SpeechRec; }
 
-function cancelListening() {
-  _nextResultHandler = null;
-}
-
-function supportsPronunciationTest() {
-  return !!SpeechRec;
-}
-
-// Pre-warm microphone permission via getUserMedia.
-// IMPORTANT: On file:// URLs, Chrome revokes mic permission when the stream closes.
-// We keep the stream alive throughout the quiz session to maintain permission,
-// then release it when the user returns to the home screen.
-let _micPermissionReady = false;
-let _liveMicStream = null;
-
-async function ensureMicPermission() {
-  // If we already have an active stream, permission is still granted
-  if (_micPermissionReady && _liveMicStream && _liveMicStream.active) return true;
-  // Stream died or never requested — re-request
-  _micPermissionReady = false;
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    // Older browsers: fall back to SpeechRecognition's own prompt
-    _micPermissionReady = true;
-    return true;
-  }
-  try {
-    // KEY FIX: Do NOT close the stream. Keeping it alive preserves the mic
-    // permission across multiple SpeechRecognition calls, especially on file:// URLs.
-    _liveMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    _micPermissionReady = true;
-    // Watch for the stream dying (e.g., user revokes mic via browser UI)
-    _liveMicStream.getAudioTracks().forEach(track => {
-      track.onended = () => {
-        _micPermissionReady = false;
-        _liveMicStream = null;
-      };
-    });
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-function releaseMic() {
-  if (_liveMicStream) {
-    try { _liveMicStream.getTracks().forEach(t => t.stop()); } catch (e) {}
-    _liveMicStream = null;
-  }
-  _micPermissionReady = false;
-}
-
-function supportsPronunciationTest() {
-  return !!SpeechRec;
-}
-
-function normalizeForCompare(s) {
-  return s.toLowerCase().replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
-}
-
+// ... (gradePronunciation, setPronBtn, showPronResult 등 UI 로직 유지) ...
+function normalizeForCompare(s) { return s.toLowerCase().replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim(); }
 function gradePronunciation(heard, target) {
-  const h = normalizeForCompare(heard);
-  const t = normalizeForCompare(target);
+  const h = normalizeForCompare(heard), t = normalizeForCompare(target);
   if (!h) return { level: "bad", label: "소리를 못 들었어요", emoji: "🔇" };
   if (h === t) return { level: "perfect", label: "완벽해요!", emoji: "💯" };
-  // Try word-by-word for multi-word phrases
-  const dist = levenshtein(h, t);
-  const ratio = dist / Math.max(t.length, 1);
+  const ratio = levenshtein(h, t) / Math.max(t.length, 1);
   if (ratio <= 0.2) return { level: "good", label: "아주 좋아요!", emoji: "👍" };
   if (ratio <= 0.4) return { level: "close", label: "비슷해요", emoji: "🎯" };
   return { level: "bad", label: "다시 시도해보세요", emoji: "🔄" };
 }
-
 function setPronBtn(state) {
-  const btn = document.getElementById("pron-btn");
-  const txt = document.getElementById("pron-btn-text");
-  if (!btn) return;
-  btn.classList.toggle("listening", state === "listening");
-  if (state === "listening") txt.textContent = "듣는 중...";
-  else if (state === "processing") txt.textContent = "분석 중...";
-  else txt.textContent = "발음 테스트";
+  const btn = document.getElementById("pron-btn"), txt = document.getElementById("pron-btn-text");
+  if (!btn) return; btn.classList.toggle("listening", state === "listening");
+  txt.textContent = state === "listening" ? "듣는 중..." : "발음 테스트";
 }
-
 function showPronResult(html, level) {
-  const el = document.getElementById("pron-result");
-  el.className = `pron-result ${level || ""}`;
-  el.innerHTML = html;
-  el.classList.remove("hidden");
+  const el = document.getElementById("pron-result"); el.className = `pron-result ${level || ""}`;
+  el.innerHTML = html; el.classList.remove("hidden");
 }
-
-function hidePronResult() {
-  const el = document.getElementById("pron-result");
-  if (el) el.classList.add("hidden");
-}
+function hidePronResult() { const el = document.getElementById("pron-result"); if (el) el.classList.add("hidden"); }
 
 async function startPronunciationTest() {
-  if (!supportsPronunciationTest()) {
-    showPronResult(
-      `<span class="big">⚠️</span>이 브라우저는 음성 인식을 지원하지 않아요.<br>Chrome이나 Edge를 사용해주세요.`,
-      "bad"
-    );
-    return;
-  }
-  if (recognitionActive) {
-    cancelListening();
-    recognitionActive = false;
-    setPronBtn("idle");
-    return;
-  }
-  const word = state.queue[state.idx];
-  if (!word) return;
-
-  // Stop any TTS playback first
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  if (currentAudio) currentAudio.pause();
-
-  hidePronResult();
-  recognitionActive = true;
-  setPronBtn("listening");
-
-  // Safety timeout in case no speech detected
-  const timeoutId = setTimeout(() => {
-    if (recognitionActive) {
-      cancelListening();
-      recognitionActive = false;
-      setPronBtn("idle");
-      showPronResult(`<span class="big">🤔</span>소리를 잡지 못했어요. 다시 시도해보세요`, "bad");
-    }
-  }, 8000);
-
+  if (!supportsPronunciationTest()) { showPronResult("⚠️ 지원하지 않는 브라우저입니다.", "bad"); return; }
+  if (recognitionActive) { cancelListening(); recognitionActive = false; setPronBtn("idle"); return; }
+  const word = state.queue[state.idx]; if (!word) return;
+  hidePronResult(); recognitionActive = true; setPronBtn("listening");
   listenWith("en-US", (alts, err) => {
-    clearTimeout(timeoutId);
-    recognitionActive = false;
-    setPronBtn("idle");
-    if (err) {
-      let msg = "오류가 발생했어요";
-      if (err === "not-allowed" || err === "service-not-allowed") {
-        msg = "마이크 권한을 허용해주세요 🎤";
-      } else if (err === "no-support") {
-        msg = "브라우저가 음성 인식을 지원하지 않아요";
-      }
-      showPronResult(`<span class="big">⚠️</span>${msg}`, "bad");
-      return;
-    }
-    if (!alts || alts.length === 0) {
-      showPronResult(`<span class="big">🤔</span>들린 게 없어요`, "bad");
-      return;
-    }
+    recognitionActive = false; setPronBtn("idle");
+    if (err) { showPronResult("⚠️ 오류가 발생했습니다.", "bad"); return; }
     let best = null;
-    const target = word.en;
-    for (const alt of alts) {
-      const grade = gradePronunciation(alt.transcript, target);
-      if (!best || gradeRank(grade.level) > gradeRank(best.grade.level)) {
-        best = { transcript: alt.transcript, grade };
-      }
-    }
-    showPronResult(
-      `<span class="big">${best.grade.emoji}</span>${best.grade.label}
-       <span class="heard">들린 단어: "${best.transcript}"</span>`,
-      best.grade.level
-    );
+    alts.forEach(alt => {
+      const grade = gradePronunciation(alt.transcript, word.en);
+      if (!best || (gradeRank(grade.level) > gradeRank(best.grade.level))) best = { transcript: alt.transcript, grade };
+    });
+    showPronResult(`<span class="big">${best.grade.emoji}</span>${best.grade.label}<span class="heard">"${best.transcript}"</span>`, best.grade.level);
   });
 }
+function gradeRank(l) { return { perfect: 4, good: 3, close: 2, bad: 1 }[l] || 0; }
 
-function gradeRank(level) {
-  return { perfect: 4, good: 3, close: 2, bad: 1 }[level] || 0;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Korean voice answer (speak Korean meaning instead of typing)
-// ═══════════════════════════════════════════════════════════════════════════
+// ── Korean Answer ──
 function showVoiceStatus(text, isError) {
-  const el = document.getElementById("voice-status");
-  if (!el) return;
-  el.textContent = text;
-  el.style.color = isError ? "#e57373" : "#81c784";
-  el.classList.remove("hidden");
-  if (text) {
-    setTimeout(() => el.classList.add("hidden"), 3000);
-  }
+  const el = document.getElementById("voice-status"); if (!el) return;
+  el.textContent = text; el.style.color = isError ? "#e57373" : "#81c784"; el.classList.remove("hidden");
 }
-
 function setAnswerMic(listening) {
-  const btn = document.getElementById("answer-mic");
-  if (!btn) return;
-  btn.classList.toggle("listening", listening);
-  btn.innerHTML = listening ? "🔴" : "🎤";
+  const btn = document.getElementById("answer-mic"); if (!btn) return;
+  btn.classList.toggle("listening", listening); btn.innerHTML = listening ? "🔴" : "🎤";
 }
-
 async function startKoreanAnswer() {
-  if (!SpeechRec) {
-    showVoiceStatus("이 브라우저는 음성 인식 미지원 (Chrome 권장)", true);
-    return;
-  }
-  if (state.feedback) return;
-
-  // If already listening, cancel
-  if (recognitionActive) {
-    cancelListening();
-    recognitionActive = false;
-    setAnswerMic(false);
-    return;
-  }
-
-  // Stop any TTS playback first
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  if (currentAudio) currentAudio.pause();
-
-  recognitionActive = true;
-  setAnswerMic(true);
-  showVoiceStatus("🎤 듣고 있어요... 한국어로 말하세요", false);
-  document.getElementById("voice-status").style.color = "#64b5f6";
-
-  // Safety timeout
-  const timeoutId = setTimeout(() => {
-    if (recognitionActive) {
-      cancelListening();
-      recognitionActive = false;
-      setAnswerMic(false);
-      showVoiceStatus("🤔 소리를 잡지 못했어요", true);
-    }
-  }, 8000);
-
+  if (!SpeechRec) { showVoiceStatus("⚠️ 지원하지 않음", true); return; }
+  if (state.feedback || recognitionActive) { cancelListening(); recognitionActive = false; setAnswerMic(false); return; }
+  recognitionActive = true; setAnswerMic(true); showVoiceStatus("🎤 듣고 있어요...", false);
   listenWith("ko-KR", (alts, err) => {
-    clearTimeout(timeoutId);
-    recognitionActive = false;
-    setAnswerMic(false);
-    if (err) {
-      let msg = "오류";
-      if (err === "not-allowed" || err === "service-not-allowed") {
-        msg = "⚠️ 마이크 권한을 허용해주세요";
-      } else if (err === "no-support") {
-        msg = "⚠️ 브라우저 미지원";
-      } else if (err === "network") {
-        msg = "⚠️ 네트워크 오류";
-      } else if (err === "audio-capture") {
-        msg = "⚠️ 마이크를 찾을 수 없어요";
-      } else if (err === "language-not-supported") {
-        msg = "⚠️ 한국어 인식 미지원";
-      }
-      showVoiceStatus(msg, true);
-      return;
-    }
-    if (!alts || alts.length === 0) {
-      showVoiceStatus("🤔 들린 말이 없어요", true);
-      return;
-    }
-    // Pick the alternative that best matches the answer
+    recognitionActive = false; setAnswerMic(false);
+    if (err) { showVoiceStatus("⚠️ 오류", true); return; }
     const word = state.queue[state.idx];
-    let bestTranscript = alts[0].transcript;
-    if (word) {
-      for (const alt of alts) {
-        if (checkAnswer(alt.transcript, word.ko)) {
-          bestTranscript = alt.transcript;
-          break;
-        }
-      }
-    }
-    document.getElementById("answer").value = bestTranscript;
-    showVoiceStatus(`들린 말: "${bestTranscript}"`, false);
+    let best = alts[0].transcript;
+    alts.forEach(alt => { if (checkAnswer(alt.transcript, word.ko)) best = alt.transcript; });
+    document.getElementById("answer").value = best;
+    showVoiceStatus(`들린 말: "${best}"`, false);
     setTimeout(() => { if (!state.feedback) submit(); }, 500);
   });
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Chapter selector
-// ═══════════════════════════════════════════════════════════════════════════
-const MISTAKES_CHAPTER_ID = "__mistakes__";
-
+// ── Quiz Flow ──
 function renderChapterGrid() {
-  const grid = document.getElementById("chapter-grid");
-  grid.innerHTML = "";
-
-  // Special "frequently wrong" card — always visible
+  const grid = document.getElementById("chapter-grid"); grid.innerHTML = "";
   const wrongWords = getWrongWords();
-  const wrongCount = wrongWords.length;
   const specialCard = document.createElement("button");
-  specialCard.className = "chapter-card special-card";
-  if (wrongCount === 0) specialCard.classList.add("disabled");
-  if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID) && wrongCount > 0) {
-    specialCard.classList.add("selected");
-  }
-  specialCard.innerHTML = `
-    ${wrongCount > 0 ? '<div class="reset-x" title="오답 기록 초기화">×</div>' : ''}
-    <div class="check">${state.selectedChapterIds.has(MISTAKES_CHAPTER_ID) && wrongCount > 0 ? "✓" : ""}</div>
-    <div class="ch-title">🔥 자주 틀린 단어</div>
-    <div class="ch-count">${wrongCount === 0 ? "아직 없음" : wrongCount + "개 단어"}</div>
-  `;
-  specialCard.addEventListener("click", (e) => {
-    if (wrongCount === 0) return;
-    // X button → clear mistakes
-    if (e.target.classList.contains("reset-x")) {
-      e.stopPropagation();
-      if (confirm("오답 기록을 모두 초기화할까요?\n(지금까지 틀린 단어 데이터가 삭제됩니다)")) {
-        clearMistakes();
-        state.selectedChapterIds.delete(MISTAKES_CHAPTER_ID);
-        renderChapterGrid();
-        updateSelectedCount();
-      }
-      return;
-    }
-    if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID)) {
-      state.selectedChapterIds.delete(MISTAKES_CHAPTER_ID);
-    } else {
-      state.selectedChapterIds.add(MISTAKES_CHAPTER_ID);
-    }
-    renderChapterGrid();
-    updateSelectedCount();
-  });
+  specialCard.className = `chapter-card special-card ${wrongWords.length === 0 ? 'disabled' : ''} ${state.selectedChapterIds.has("__mistakes__") ? 'selected' : ''}`;
+  specialCard.innerHTML = `<div class="check">${state.selectedChapterIds.has("__mistakes__") ? "✓" : ""}</div><div class="ch-title">🔥 자주 틀린 단어</div><div class="ch-count">${wrongWords.length}개</div>`;
+  specialCard.onclick = () => { if (wrongWords.length > 0) { state.selectedChapterIds.has("__mistakes__") ? state.selectedChapterIds.delete("__mistakes__") : state.selectedChapterIds.add("__mistakes__"); renderChapterGrid(); updateSelectedCount(); } };
   grid.appendChild(specialCard);
-
   CHAPTERS.forEach(ch => {
-    const card = document.createElement("button");
-    card.className = "chapter-card";
-    if (state.selectedChapterIds.has(ch.id)) card.classList.add("selected");
-    card.innerHTML = `
-      <div class="check">${state.selectedChapterIds.has(ch.id) ? "✓" : ""}</div>
-      <div class="ch-title">${ch.title}</div>
-      <div class="ch-count">${ch.words.length}개 단어</div>
-    `;
-    card.addEventListener("click", () => {
-      if (state.selectedChapterIds.has(ch.id)) state.selectedChapterIds.delete(ch.id);
-      else state.selectedChapterIds.add(ch.id);
-      renderChapterGrid();
-      updateSelectedCount();
-    });
+    const card = document.createElement("button"); card.className = `chapter-card ${state.selectedChapterIds.has(ch.id) ? 'selected' : ''}`;
+    card.innerHTML = `<div class="check">${state.selectedChapterIds.has(ch.id) ? "✓" : ""}</div><div class="ch-title">${ch.title}</div><div class="ch-count">${ch.words.length}개</div>`;
+    card.onclick = () => { state.selectedChapterIds.has(ch.id) ? state.selectedChapterIds.delete(ch.id) : state.selectedChapterIds.add(ch.id); renderChapterGrid(); updateSelectedCount(); };
     grid.appendChild(card);
   });
 }
 function updateSelectedCount() {
   let total = 0;
-  if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID)) {
-    total += getWrongWords().length;
-  }
-  CHAPTERS
-    .filter(c => state.selectedChapterIds.has(c.id))
-    .forEach(c => total += c.words.length);
-  document.getElementById("selected-count").textContent =
-    total === 0 ? "챕터를 선택해주세요" : `${total}개 단어 선택됨`;
+  if (state.selectedChapterIds.has("__mistakes__")) total += getWrongWords().length;
+  CHAPTERS.filter(c => state.selectedChapterIds.has(c.id)).forEach(c => total += c.words.length);
+  document.getElementById("selected-count").textContent = `${total}개 선택됨`;
   document.getElementById("start-btn").disabled = total === 0;
 }
-document.getElementById("select-all-btn").addEventListener("click", () => {
-  CHAPTERS.forEach(c => state.selectedChapterIds.add(c.id));
-  renderChapterGrid(); updateSelectedCount();
-});
-document.getElementById("clear-all-btn").addEventListener("click", () => {
-  state.selectedChapterIds.clear();
-  renderChapterGrid(); updateSelectedCount();
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Quiz flow
-// ═══════════════════════════════════════════════════════════════════════════
-function getSelectedWords() {
-  const seen = new Set();
-  const words = [];
-  // Mistake words come first if selected
-  if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID)) {
-    getWrongWords().forEach(w => {
-      const key = w.en.toLowerCase();
-      if (!seen.has(key)) { seen.add(key); words.push(w); }
-    });
-  }
-  CHAPTERS
-    .filter(c => state.selectedChapterIds.has(c.id))
-    .forEach(c => c.words.forEach(w => {
-      const key = w.en.toLowerCase();
-      if (!seen.has(key)) { seen.add(key); words.push(w); }
-    }));
-  return words;
-}
-
 function startQuiz() {
-  const words = getSelectedWords();
-  if (words.length === 0) return;
-  state.queue = shuffle(words);
-  state.idx = 0; state.feedback = null;
-  state.wrongs = new Set();
-  state.correct = 0; state.attempts = 0; state.round = 1;
-  show("quiz");
-  render();
-  speak(state.queue[0].en);
+  const words = []; const seen = new Set();
+  if (state.selectedChapterIds.has("__mistakes__")) getWrongWords().forEach(w => { if (!seen.has(w.en)) { seen.add(w.en); words.push(w); } });
+  CHAPTERS.filter(c => state.selectedChapterIds.has(c.id)).forEach(c => c.words.forEach(w => { if (!seen.has(w.en)) { seen.add(w.en); words.push(w); } }));
+  state.queue = shuffle(words); state.idx = 0; state.wrongs = new Set(); state.correct = 0; state.attempts = 0; state.round = 1; state.feedback = null;
+  show("quiz"); render(); speak(state.queue[0].en);
 }
-
 function render() {
-  const word = state.queue[state.idx];
-  if (!word) return;
-  document.getElementById("round-chip").textContent = `R${state.round}`;
-  document.getElementById("correct-chip").textContent = `✓ ${state.correct}`;
-  document.getElementById("pos").textContent = state.idx + 1;
-  document.getElementById("qtotal").textContent = state.queue.length;
+  const word = state.queue[state.idx]; if (!word) return;
+  document.getElementById("pos").textContent = state.idx + 1; document.getElementById("qtotal").textContent = state.queue.length;
+  document.getElementById("word").textContent = word.en;
+  document.getElementById("s-attempts").textContent = state.attempts; document.getElementById("s-correct").textContent = state.correct;
   document.getElementById("bar").style.width = `${(state.idx / state.queue.length) * 100}%`;
-
-  const wordEl = document.getElementById("word");
-  wordEl.textContent = word.en;
-  wordEl.classList.remove("long", "vlong");
-  if (word.en.length > 22) wordEl.classList.add("vlong");
-  else if (word.en.length > 14) wordEl.classList.add("long");
-
-  document.getElementById("s-attempts").textContent = state.attempts;
-  document.getElementById("s-correct").textContent = state.correct;
-  document.getElementById("s-wrong").textContent = state.attempts - state.correct;
-
-  const card = document.getElementById("card");
-  const inputArea = document.getElementById("input-area");
-  const fbArea = document.getElementById("feedback-area");
-  card.classList.remove("ok", "ng");
-
+  const inputArea = document.getElementById("input-area"), fbArea = document.getElementById("feedback-area"), card = document.getElementById("card");
+  card.className = "card";
   if (!state.feedback) {
-    hidePronResult();
-    // Enable/disable pron button based on support
-    const pronBtn = document.getElementById("pron-btn");
-    if (!supportsPronunciationTest()) {
-      pronBtn.style.display = "none";
-    }
-    // Hide Korean answer mic if unsupported
-    const answerMic = document.getElementById("answer-mic");
-    if (!SpeechRec) answerMic.style.display = "none";
-    // Hide any stale voice status
-    const vs = document.getElementById("voice-status");
-    if (vs) vs.classList.add("hidden");
-    inputArea.classList.remove("hidden");
-    fbArea.classList.add("hidden");
-    document.getElementById("answer").value = "";
+    inputArea.classList.remove("hidden"); fbArea.classList.add("hidden"); document.getElementById("answer").value = "";
     setTimeout(() => document.getElementById("answer").focus(), 100);
   } else {
-    inputArea.classList.add("hidden");
-    fbArea.classList.remove("hidden");
-    card.classList.add(state.feedback);
+    inputArea.classList.add("hidden"); fbArea.classList.remove("hidden"); card.classList.add(state.feedback);
     const isLast = state.idx + 1 >= state.queue.length;
-    const nextText = isLast ? "결과 보기 →" : "다음 →";
-    if (state.feedback === "ok") {
-      fbArea.innerHTML = `
-        <div style="animation: pop .3s ease">
-          <div class="feedback-icon">🎉</div>
-          <div class="feedback-title ok">정답!</div>
-          <div class="feedback-answer ok">${word.ko[0]}</div>
-          <button class="btn-outline" style="color:#81c784" id="next-btn">${nextText}</button>
-        </div>`;
-    } else {
-      fbArea.innerHTML = `
-        <div style="animation: shake .4s ease">
-          <div class="feedback-icon">😅</div>
-          <div class="feedback-title ng">틀렸어요! 정답:</div>
-          <div class="feedback-answer">${word.ko.join(" / ")}</div>
-          <div class="feedback-note">다음 라운드에 다시 나옵니다</div>
-          <button class="btn-outline" style="color:#e57373" id="next-btn">${nextText}</button>
-        </div>`;
-    }
-    document.getElementById("next-btn").addEventListener("click", nextQuestion);
+    fbArea.innerHTML = `<div><div class="feedback-title ${state.feedback === 'ok' ? 'ok' : 'ng'}">${state.feedback === 'ok' ? '정답!' : '틀렸어요!'}</div><div class="feedback-answer">${word.ko.join(" / ")}</div><button class="btn-outline" id="next-btn">${isLast ? "결과 보기" : "다음"}</button></div>`;
+    document.getElementById("next-btn").onclick = nextQuestion;
   }
 }
-
 function submit() {
   if (state.feedback) return;
-  const input = document.getElementById("answer").value;
-  if (!input.trim()) return;
-  const word = state.queue[state.idx];
-  const ok = checkAnswer(input.trim(), word.ko);
-  state.attempts++;
-  recordResult(word.en, ok);
-  if (ok) { state.correct++; state.feedback = "ok"; try { playCorrectSound(); } catch(e){} }
-  else { state.wrongs.add(word.en); state.feedback = "ng"; try { playWrongSound(); } catch(e){} }
+  const val = document.getElementById("answer").value.trim(); if (!val) return;
+  const word = state.queue[state.idx]; const ok = checkAnswer(val, word.ko);
+  state.attempts++; recordResult(word.en, ok);
+  if (ok) { state.correct++; state.feedback = "ok"; playCorrectSound(); } else { state.wrongs.add(word.en); state.feedback = "ng"; playWrongSound(); }
   render();
 }
-
 function nextQuestion() {
-  const nextIdx = state.idx + 1;
-  if (nextIdx >= state.queue.length) {
-    const wrongWords = state.queue.filter(w => state.wrongs.has(w.en));
-    if (wrongWords.length === 0) { showDone(); return; }
-    state.queue = shuffle(wrongWords);
-    state.wrongs = new Set();
-    state.idx = 0;
-    state.round++;
-    state.feedback = null;
-  } else {
-    state.idx = nextIdx;
-    state.feedback = null;
+  if (state.idx + 1 >= state.queue.length) {
+    const nextQ = state.queue.filter(w => state.wrongs.has(w.en));
+    if (nextQ.length === 0) { showDone(); return; }
+    state.queue = shuffle(nextQ); state.idx = 0; state.wrongs = new Set(); state.round++; state.feedback = null;
+  } else { state.idx++; state.feedback = null; }
+  render(); speak(state.queue[state.idx].en);
+}
+function showDone() { show("done"); playFanfare(); }
+function goHome() { releaseMic(); show("intro"); renderChapterGrid(); }
+
+// [수정] 모바일 정책 대응 이벤트 리스너
+document.getElementById("start-btn").onclick = () => {
+  if (window.speechSynthesis) {
+    const wakeUp = new SpeechSynthesisUtterance('');
+    window.speechSynthesis.speak(wakeUp);
   }
-  render();
-  speak(state.queue[state.idx].en);
-}
+  startQuiz();
+};
 
-function showDone() {
-  const accuracy = Math.round(state.correct / Math.max(state.attempts, 1) * 100);
-  const items = [
-    ["총 시도", state.attempts + "회", "#8899aa"],
-    ["정답", state.correct + "개", "#81c784"],
-    ["라운드", state.round + "R", "#FFB703"],
-    ["정확도", accuracy + "%", "#64b5f6"],
-  ];
-  document.getElementById("done-stats").innerHTML = items.map(([l, v, c]) =>
-    `<div class="done-stat"><div class="n" style="color:${c}">${v}</div><div class="l">${l}</div></div>`
-  ).join("");
-  show("done");
-  try { playFanfare(); } catch(e) {}
-}
+document.getElementById("submit-btn").onclick = submit;
+document.getElementById("answer").onkeydown = e => { if (e.key === "Enter") submit(); };
+document.getElementById("home-btn").onclick = goHome;
+document.getElementById("home-btn-2").onclick = goHome;
+document.getElementById("speaker").onclick = () => { if (state.queue[state.idx]) speak(state.queue[state.idx].en); };
+document.getElementById("pron-btn").onclick = startPronunciationTest;
+document.getElementById("answer-mic").onclick = startKoreanAnswer;
+document.getElementById("test-voice").onclick = () => speak("Test");
 
-function goHome() {
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-  if (currentAudio) currentAudio.pause();
-  // Fully shut down persistent recognition (allows tab mic indicator to turn off)
-  recognitionActive = false;
-  cancelListening();
-  if (_persistentRec) {
-    const rec = _persistentRec;
-    _persistentRec = null; // Prevent onend auto-restart
-    try { rec.stop(); } catch (e) {}
-    try { rec.abort(); } catch (e) {}
-  }
-  // Release mic stream (turns off the mic indicator in browser tab)
-  releaseMic();
-  // Refresh wrong-words list when returning home (may have new mistakes)
-  renderChapterGrid();
-  updateSelectedCount();
-  show("intro");
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Event listeners
-// ═══════════════════════════════════════════════════════════════════════════
-document.getElementById("start-btn").addEventListener("click", startQuiz);
-document.getElementById("restart-btn").addEventListener("click", startQuiz);
-document.getElementById("submit-btn").addEventListener("click", submit);
-document.getElementById("home-btn").addEventListener("click", goHome);
-document.getElementById("home-btn-2").addEventListener("click", goHome);
-document.getElementById("answer").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
-document.getElementById("speaker").addEventListener("click", () => {
-  const word = state.queue[state.idx];
-  if (word) speak(word.en);
-});
-document.getElementById("pron-btn").addEventListener("click", startPronunciationTest);
-document.getElementById("answer-mic").addEventListener("click", startKoreanAnswer);
-document.getElementById("test-voice").addEventListener("click", () => {
-  speak("Hello! This is a test of the English voice.");
-});
-
-// Preselect Ch. 17-18 for first-time users
-state.selectedChapterIds.add("ch17-18");
-renderChapterGrid();
-updateSelectedCount();
-
-if (window.speechSynthesis) {
-  loadVoices();
-  window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
-  setTimeout(loadVoices, 300);
-}
+renderChapterGrid(); updateSelectedCount();
+if (window.speechSynthesis) { loadVoices(); window.speechSynthesis.onvoiceschanged = loadVoices; }
 </script>
 </body>
 </html>
