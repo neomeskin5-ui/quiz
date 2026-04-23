@@ -1,0 +1,2484 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Choate English 단어 퀴즈</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: linear-gradient(150deg, #1a1a2e, #16213e, #0f3460);
+    font-family: Georgia, serif;
+    color: #fff;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding: 16px;
+  }
+  .screen { width: 100%; max-width: 560px; animation: fadeIn .4s ease; }
+  .hidden { display: none !important; }
+  h1 {
+    color: #FFB703; font-size: 1.7rem; margin: 8px 0 4px;
+    letter-spacing: 1.5px; text-shadow: 0 0 24px rgba(255,183,3,0.4);
+  }
+  .subtitle { color: #8899aa; margin: 0 0 2px; font-size: 0.95rem; }
+  .count { color: #556677; font-size: 0.78rem; margin-bottom: 14px; }
+  .center { text-align: center; }
+  .voice-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 0.76rem; }
+  .voice-row label { color: #8899aa; white-space: nowrap; }
+  select {
+    flex: 1; background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px; padding: 7px 10px;
+    color: #fff; font-family: inherit; font-size: 0.78rem;
+    outline: none;
+  }
+  select option { background: #1a1a2e; }
+  .test-btn {
+    background: rgba(255,183,3,0.12);
+    border: 1px solid rgba(255,183,3,0.35);
+    border-radius: 8px; padding: 6px 12px;
+    color: #FFB703; cursor: pointer; font-size: 0.72rem;
+    font-family: inherit;
+  }
+  .chapter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  @media (min-width: 500px) {
+    .chapter-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  .chapter-card {
+    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 12px 10px;
+    cursor: pointer; text-align: left;
+    transition: all .2s;
+    position: relative;
+    color: #ccd; font-family: inherit;
+    font-size: 0.78rem;
+  }
+  .chapter-card.selected {
+    background: rgba(255,183,3,0.12);
+    border-color: #FFB703;
+    color: #fff;
+    box-shadow: 0 0 16px rgba(255,183,3,0.2);
+  }
+  .chapter-card .ch-title { font-weight: bold; margin-bottom: 3px; font-size: 0.82rem; }
+  .chapter-card .ch-count { color: #778899; font-size: 0.7rem; }
+  .chapter-card.selected .ch-count { color: #ffd34d; }
+  .chapter-card .check {
+    position: absolute; top: 8px; right: 8px;
+    width: 18px; height: 18px;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+    background: rgba(0,0,0,0.2);
+  }
+  .chapter-card.selected .check {
+    background: #FFB703;
+    border-color: #FFB703;
+    color: #1a1a2e;
+    font-weight: bold;
+  }
+  .select-actions {
+    display: flex; gap: 8px; margin-bottom: 16px; justify-content: center;
+  }
+  .mini-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px; padding: 6px 14px;
+    color: #aabbcc; cursor: pointer;
+    font-size: 0.75rem; font-family: inherit;
+  }
+  .mini-btn:hover { background: rgba(255,255,255,0.1); }
+  .selected-count {
+    text-align: center; color: #FFB703; font-size: 0.85rem;
+    margin-bottom: 14px; font-weight: bold;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #FFB703, #e85d04);
+    color: #1a1a2e; font-weight: bold; letter-spacing: 0.5px;
+    border: none; border-radius: 50px;
+    padding: 14px 44px; font-size: 1rem;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 8px 24px rgba(255,183,3,0.35);
+  }
+  .btn-primary:disabled {
+    background: rgba(255,255,255,0.1); color: #556677;
+    box-shadow: none; cursor: not-allowed;
+  }
+  .btn-primary.full { border-radius: 12px; padding: 13px; width: 100%; }
+  .btn-outline {
+    background: transparent; border: 2px solid currentColor;
+    border-radius: 50px; padding: 11px 32px;
+    font-size: 0.95rem; font-weight: bold;
+    cursor: pointer; font-family: inherit;
+  }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
+  .chip { border-radius: 20px; padding: 4px 12px; font-size: 0.75rem; font-family: monospace; border: 1px solid; }
+  .chip.gold { color: #FFB703; border-color: rgba(255,183,3,0.4); background: rgba(255,183,3,0.12); }
+  .chip.green { color: #81c784; border-color: rgba(129,199,132,0.4); background: rgba(129,199,132,0.12); }
+  .chip.home {
+    color: #8899aa; border-color: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05); cursor: pointer;
+  }
+  .progress {
+    height: 3px; background: rgba(255,255,255,0.08);
+    border-radius: 2px; margin-bottom: 20px; overflow: hidden;
+  }
+  .progress .bar {
+    height: 100%; background: linear-gradient(90deg, #FFB703, #e85d04);
+    border-radius: 2px; transition: width 0.3s;
+  }
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 22px; padding: 28px 20px;
+    text-align: center; transition: all 0.3s;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+  }
+  .card.ok { background: rgba(76,175,80,0.12); border-color: rgba(76,175,80,0.55); box-shadow: 0 0 40px rgba(76,175,80,0.2); }
+  .card.ng { background: rgba(229,57,53,0.11); border-color: rgba(229,57,53,0.55); box-shadow: 0 0 40px rgba(229,57,53,0.2); }
+  .prompt { color: #8899aa; font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 10px; }
+  .word { color: #fff; font-weight: bold; font-size: 2.1rem; margin-bottom: 18px; line-height: 1.2; }
+  .word.long { font-size: 1.4rem; }
+  .word.vlong { font-size: 1.1rem; }
+  .speaker {
+    background: rgba(255,183,3,0.1); border: 2px solid #FFB703;
+    border-radius: 50px; padding: 12px 32px;
+    color: #FFB703; font-size: 1.05rem; cursor: pointer;
+    font-family: inherit; margin-bottom: 22px; min-width: 180px;
+    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+  }
+  .speaker.playing { background: rgba(255,183,3,0.3); }
+  .speaker .icon { display: inline-block; }
+  .speaker.playing .icon { animation: pulse 0.6s ease-in-out infinite alternate; }
+  input[type="text"] {
+    width: 100%; background: rgba(255,255,255,0.07);
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 12px; padding: 13px 14px;
+    font-size: 1.05rem; color: #fff; outline: none;
+    text-align: center; font-family: inherit;
+    margin-bottom: 10px; -webkit-appearance: none;
+  }
+  input[type="text"]::placeholder { color: #445566; }
+  input[type="text"]:focus { border-color: rgba(255,183,3,0.5); }
+  .feedback-icon { font-size: 44px; margin-bottom: 4px; }
+  .feedback-title { font-size: 1.3rem; font-weight: bold; }
+  .feedback-title.ok { color: #81c784; }
+  .feedback-title.ng { color: #e57373; font-size: 1rem; }
+  .feedback-answer { color: #ff8a65; font-size: 1.15rem; font-weight: bold; margin: 4px 0; }
+  .feedback-answer.ok { color: #4caf50; font-size: 0.9rem; margin: 6px 0 18px; }
+  .feedback-note { color: #556677; font-size: 0.72rem; margin-bottom: 18px; }
+  .stats { display: flex; justify-content: center; gap: 28px; margin-top: 18px; }
+  .stat { text-align: center; }
+  .stat .n { font-size: 1.25rem; font-weight: bold; }
+  .stat .l { color: #445566; font-size: 0.68rem; }
+  .done-stats { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+  .done-stat {
+    background: rgba(255,255,255,0.05); border-radius: 12px;
+    padding: 12px 14px; text-align: center; min-width: 68px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .done-stat .n { font-size: 1.4rem; font-weight: bold; }
+  .done-stat .l { color: #445566; font-size: 0.66rem; margin-top: 2px; }
+
+  /* ── Special "frequently wrong" card ── */
+  .special-card {
+    background: linear-gradient(135deg, rgba(229,57,53,0.1), rgba(255,107,0,0.06));
+    border: 2px solid rgba(229,57,53,0.35);
+  }
+  .special-card .ch-title { color: #ff8a65; }
+  .special-card.selected {
+    background: linear-gradient(135deg, rgba(229,57,53,0.22), rgba(255,107,0,0.16));
+    border-color: #ff6b00;
+    box-shadow: 0 0 18px rgba(229,57,53,0.25);
+  }
+  .special-card.selected .ch-title { color: #fff; }
+  .special-card.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .special-card.disabled .ch-title { color: #667788; }
+  .special-card .reset-x {
+    position: absolute; top: 6px; right: 6px;
+    width: 20px; height: 20px;
+    border: 1px solid rgba(229,57,53,0.4);
+    background: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #ff8a65; font-size: 0.7rem;
+    cursor: pointer; z-index: 2;
+  }
+  .special-card .reset-x:hover { background: rgba(229,57,53,0.3); }
+
+  /* ── Pronunciation test ── */
+  .btn-row {
+    display: flex; gap: 8px;
+    justify-content: center; align-items: center;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .speaker, .pron-btn { margin-bottom: 0 !important; }
+  .pron-btn {
+    background: rgba(100,181,246,0.08);
+    border: 2px solid #64b5f6;
+    border-radius: 50px; padding: 10px 22px;
+    color: #64b5f6; font-size: 0.95rem;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all .2s;
+  }
+  .pron-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .pron-btn.listening {
+    background: rgba(229,57,53,0.2);
+    border-color: #e57373;
+    color: #e57373;
+    animation: listen-pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes listen-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229,57,53,0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(229,57,53,0); }
+  }
+  .pron-result {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px; padding: 10px 14px;
+    margin: 0 0 16px;
+    font-size: 0.85rem; text-align: center;
+    color: #aabbcc;
+    animation: fadeIn .3s ease;
+  }
+  .pron-result.perfect { background: rgba(76,175,80,0.18); color: #81c784; }
+  .pron-result.good { background: rgba(255,183,3,0.15); color: #FFB703; }
+  .pron-result.close { background: rgba(255,152,0,0.15); color: #ffb74d; }
+  .pron-result.bad { background: rgba(229,57,53,0.15); color: #e57373; }
+  .pron-result .big { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+  .pron-result .heard {
+    display: block; margin-top: 4px; font-size: 0.75rem;
+    color: #8899aa; font-style: italic;
+  }
+
+  /* ── Korean voice answer ── */
+  .answer-row {
+    display: flex; gap: 8px; align-items: stretch;
+  }
+  .answer-mic-btn {
+    background: rgba(129,199,132,0.1);
+    border: 2px solid #81c784;
+    border-radius: 12px;
+    padding: 0 16px;
+    color: #81c784;
+    font-size: 1.3rem;
+    cursor: pointer;
+    min-width: 56px;
+    font-family: inherit;
+    transition: all .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .answer-mic-btn:hover { background: rgba(129,199,132,0.2); }
+  .answer-mic-btn.listening {
+    background: rgba(229,57,53,0.25);
+    border-color: #e57373;
+    color: #e57373;
+    animation: listen-pulse 1.1s ease-in-out infinite;
+  }
+  .answer-mic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .submit-in-row {
+    flex: 1 1 auto;
+    border-radius: 12px !important;
+    padding: 13px !important;
+    width: auto !important;
+  }
+  .voice-status {
+    text-align: center; font-size: 0.78rem;
+    color: #e57373; margin: -4px 0 8px;
+    animation: fadeIn .2s ease;
+  }
+
+  /* ── Mic support notice ── */
+  .mic-notice {
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    text-align: left;
+  }
+  .mic-notice.ok {
+    background: rgba(129,199,132,0.08);
+    border: 1px solid rgba(129,199,132,0.25);
+    color: #aabbcc;
+  }
+  .mic-notice.warn {
+    background: rgba(255,183,3,0.08);
+    border: 1px solid rgba(255,183,3,0.3);
+    color: #ffd699;
+  }
+  .mic-notice b { color: #fff; }
+  .mic-notice a {
+    color: #64b5f6; text-decoration: underline;
+  }
+  .mic-notice details {
+    margin-top: 8px;
+  }
+  .mic-notice summary {
+    cursor: pointer; color: #64b5f6;
+    font-weight: bold; font-size: 0.8rem;
+    padding: 4px 0;
+    user-select: none;
+  }
+  .mic-notice summary:hover { color: #90caf9; }
+  .mic-notice .steps {
+    margin-top: 8px; padding-left: 4px;
+    color: #ccd; font-size: 0.76rem;
+  }
+  .mic-notice code {
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    color: #ffd699;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.35); } }
+</style>
+</head>
+<body>
+
+<!-- INTRO / CHAPTER SELECT -->
+<div id="intro" class="screen center">
+  <div style="font-size: 42px;">🍫</div>
+  <h1>Choate English</h1>
+  <p class="subtitle">단어 퀴즈</p>
+  <p class="count">영어 발음을 듣고 한국어 뜻 맞추기</p>
+
+  <div class="voice-row">
+    <label>🔈 음성:</label>
+    <select id="voice-select"></select>
+    <button class="test-btn" id="test-voice">🔊 테스트</button>
+  </div>
+
+  <div id="mic-notice" class="hidden" style="margin: 4px 0 14px;"></div>
+
+  <p style="color:#aabbcc; font-size:0.82rem; margin:14px 0 10px; font-weight:bold;">📚 공부할 챕터 선택</p>
+
+  <div class="select-actions">
+    <button class="mini-btn" id="select-all-btn">전체 선택</button>
+    <button class="mini-btn" id="clear-all-btn">전체 해제</button>
+  </div>
+
+  <div class="chapter-grid" id="chapter-grid"></div>
+
+  <div class="selected-count" id="selected-count">0개 단어 선택됨</div>
+
+  <button class="btn-primary" id="start-btn" disabled>퀴즈 시작 →</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="screen hidden">
+  <div class="topbar">
+    <div class="chip home" id="home-btn">← 홈</div>
+    <div class="chip gold" id="round-chip">R1</div>
+    <span style="color:#6677aa; font-size:0.8rem;"><span id="pos"></span> / <span id="qtotal"></span></span>
+    <div class="chip green" id="correct-chip">✓ 0</div>
+  </div>
+  <div class="progress"><div class="bar" id="bar" style="width:0%"></div></div>
+
+  <div class="card" id="card">
+    <p class="prompt">이 단어의 한국어 뜻은?</p>
+    <div class="word" id="word"></div>
+    <div class="btn-row">
+      <button class="speaker" id="speaker">
+        <span class="icon">🔊</span>
+        <span id="speaker-text">발음 듣기</span>
+      </button>
+      <button class="pron-btn" id="pron-btn" title="영어 발음 테스트">
+        <span>🎤</span>
+        <span id="pron-btn-text">발음 테스트</span>
+      </button>
+    </div>
+    <div id="pron-result" class="pron-result hidden"></div>
+
+    <div id="input-area">
+      <input type="text" id="answer" placeholder="한국어로 입력 (또는 🎤 말하기)" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div id="voice-status" class="voice-status hidden"></div>
+      <div class="answer-row">
+        <button class="answer-mic-btn" id="answer-mic" title="한국어로 말해서 답하기">🎤</button>
+        <button class="btn-primary submit-in-row" id="submit-btn">확인 ✓</button>
+      </div>
+    </div>
+
+    <div id="feedback-area" class="hidden"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n" style="color:#8899aa" id="s-attempts">0</div><div class="l">시도</div></div>
+    <div class="stat"><div class="n" style="color:#81c784" id="s-correct">0</div><div class="l">정답</div></div>
+    <div class="stat"><div class="n" style="color:#e57373" id="s-wrong">0</div><div class="l">오답</div></div>
+  </div>
+</div>
+
+<!-- DONE -->
+<div id="done" class="screen center hidden">
+  <div style="font-size: 52px;">🏆</div>
+  <h1>완벽해요!</h1>
+  <p class="subtitle" style="margin-bottom: 24px;">모든 단어를 다 맞췄습니다!</p>
+  <div class="done-stats" id="done-stats"></div>
+  <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+    <button class="btn-outline" style="color:#8899aa" id="home-btn-2">← 챕터 선택</button>
+    <button class="btn-primary" id="restart-btn">다시 시작 🔄</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// VOCABULARY DATA — organized by chapter
+// ═══════════════════════════════════════════════════════════════════════════
+const CHAPTERS = [
+  {
+    id: "ch17-18",
+    title: "Chocolate Factory Ch. 17, 18",
+    words: [
+      { en: "untouched", ko: ["훼손되지 않은", "손대지 않은"] },
+      { en: "human", ko: ["인간"] },
+      { en: "at once", ko: ["즉시", "당장"] },
+      { en: "fabulous", ko: ["굉장한", "멋진"] },
+      { en: "properly", ko: ["적절하게", "제대로"] },
+      { en: "waggle", ko: ["흔들다", "움직이다"] },
+      { en: "deaf", ko: ["귀가 먼", "귀머거리"] },
+      { en: "lap", ko: ["물을 핥다", "핥다"] },
+      { en: "surface", ko: ["표면"] },
+      { en: "shriek", ko: ["비명 지르다", "비명소리", "날카로운 소리"] },
+      { en: "take off", ko: ["벗다"] },
+      { en: "suction", ko: ["빨아들이기", "흡입"] },
+      { en: "murder", ko: ["죽이다", "살인"] },
+      { en: "smash", ko: ["때려 부수다", "박살내다"] },
+      { en: "disappear", ko: ["사라지다"] },
+      { en: "keep calm", ko: ["침착해", "침착하다"] },
+      { en: "snap", ko: ["딱딱거리다", "툭 쏘다", "쏘듯이 말하다"] },
+      { en: "you can say that again", ko: ["정말 그렇다", "맞아", "동의한다", "그렇다"] },
+      { en: "barrel", ko: ["통", "배럴"] },
+      { en: "disaster", ko: ["재해", "재난", "재앙", "불행"] },
+      { en: "forgive", ko: ["용서하다"] },
+      { en: "delightful", ko: ["기분 좋은", "기쁜", "마음에 드는"] },
+      { en: "off we go", ko: ["출발"] },
+      { en: "journey", ko: ["여행"] },
+      { en: "burst", ko: ["터지다", "갑자기 나타나다", "파열", "폭발"] },
+      { en: "burst into laughter", ko: ["웃음을 터트리다", "웃음이 터지다"] },
+      { en: "boil", ko: ["끓다", "삶다"] },
+      { en: "glisten", ko: ["반짝이다", "번들거리다"] },
+      { en: "bank", ko: ["강둑"] },
+      { en: "astonish", ko: ["깜짝 놀라게 하다", "놀라게 하다"] },
+      { en: "marvellous", ko: ["기막히게 좋은", "경탄할 만한", "훌륭한"] },
+      { en: "sticky", ko: ["끈적끈적한", "끈적한"] },
+      { en: "starve", ko: ["굶주리다", "갈망하다"] },
+      { en: "starve to death", ko: ["굶어 죽다"] },
+      { en: "skeleton", ko: ["해골", "윤곽"] },
+      { en: "lately", ko: ["최근에"] },
+      { en: "tummy", ko: ["배"] },
+      { en: "gigantic", ko: ["거대한"] },
+      { en: "row", ko: ["열", "노를 젓다", "노 젓기"] },
+      { en: "argue", ko: ["논쟁하다", "주장하다", "말싸움하다"] },
+      { en: "sight", ko: ["시력", "시야"] },
+      { en: "gold-topped", ko: ["금이 위에 둘러진", "금으로 덮인"] },
+    ]
+  },
+  {
+    id: "ch19-20",
+    title: "Chocolate Factory Ch. 19, 20",
+    words: [
+      { en: "invent", ko: ["발명하다"] },
+      { en: "oar", ko: ["배를 움직이는 노", "노"] },
+      { en: "private", ko: ["개인적인", "비밀의"] },
+      { en: "keep out", ko: ["출입금지", "출입금지 시키다"] },
+      { en: "keyhole", ko: ["열쇠 구멍"] },
+      { en: "entire", ko: ["전체의"] },
+      { en: "witch", ko: ["마녀"] },
+      { en: "kettle", ko: ["주전자"] },
+      { en: "at least", ko: ["적어도", "최소한"] },
+      { en: "pocket money", ko: ["용돈"] },
+      { en: "brand-new", ko: ["신품의", "새로운"] },
+      { en: "bald", ko: ["대머리의"] },
+      { en: "precious", ko: ["귀중한", "소중한"] },
+      { en: "knock over", ko: ["뒤집어엎다", "때려눕히다", "쓰러뜨리다"] },
+      { en: "suck", ko: ["빨다", "빨아먹다"] },
+      { en: "beard", ko: ["턱수염"] },
+      { en: "hairy", ko: ["털이 많은"] },
+      { en: "mustache", ko: ["콧수염"] },
+      { en: "go on", ko: ["계속되다", "계속 하다"] },
+      { en: "completely", ko: ["완전히"] },
+      { en: "luscious", ko: ["감미로운", "달콤한", "아주 부드러운"] },
+      { en: "gigantic", ko: ["거대한"] },
+      { en: "metal", ko: ["금속"] },
+      { en: "tower", ko: ["우뚝 솟아있다"] },
+      { en: "downwards", ko: ["아래쪽으로"] },
+      { en: "mighty", ko: ["강력한", "장대한"] },
+      { en: "fabulous", ko: ["굉장한", "멋진"] },
+      { en: "slap", ko: ["찰싹 때리다"] },
+      { en: "queer", ko: ["별난", "기묘한"] },
+      { en: "immediately", ko: ["즉시", "바로 옆에"] },
+      { en: "sprout", ko: ["싹이 나다", "생기다", "나타나다"] },
+      { en: "curl", ko: ["곱슬머리", "곱슬곱슬하게 하다", "돌돌 감기다"] },
+      { en: "frighteningly", ko: ["무섭게"] },
+      { en: "take place", ko: ["개최되다", "사건이 일어나다"] },
+    ]
+  },
+  {
+    id: "ch21-22",
+    title: "Chocolate Factory Ch. 21, 22",
+    words: [
+      { en: "fascinating", ko: ["대단히 흥미로운", "멋진"] },
+      { en: "rubbish", ko: ["쓰레기", "쓰레기같은 것", "혹평하다"] },
+      { en: "absolutely", ko: ["전적으로", "틀림없이", "완전히"] },
+      { en: "satisfy", ko: ["만족시키다"] },
+      { en: "obstinate", ko: ["고집 센", "완강한", "고집센"] },
+      { en: "gently", ko: ["다정하게", "부드럽게"] },
+      { en: "marvelous", ko: ["대단히 훌륭한", "놀라운", "멋진"] },
+      { en: "keep", ko: ["유지하다", "계속하다"] },
+      { en: "extraordinary", ko: ["비범한", "기이한"] },
+      { en: "spellbound", ko: ["마음을 다 빼앗긴", "넋을 잃은"] },
+      { en: "spit it out", ko: ["뱉어 버려", "그것을 뱉어 버려"] },
+      { en: "order", ko: ["명령하다", "주문하다"] },
+      { en: "peculiar", ko: ["이상한", "별난"] },
+      { en: "swell", ko: ["부풀다", "증가하다", "팽창"] },
+      { en: "prick", ko: ["찌르다", "날카로운 것으로 찌르다"] },
+      { en: "squeeze", ko: ["짜내다"] },
+      { en: "naughty", ko: ["버릇없는", "말을 안듣는"] },
+      { en: "we'd better", ko: ["~하는 것이 낫겠다", "우리는 ~하는 것이 낫겠다"] },
+      { en: "anxious", ko: ["걱정하는", "열망하는"] },
+      { en: "grown-up", ko: ["다 큰", "장성한", "어른"] },
+      { en: "get lost", ko: ["길을 잃다"] },
+      { en: "waft", ko: ["둥둥 떠돌다", "풍기다"] },
+      { en: "wallpaper", ko: ["벽지"] },
+      { en: "lick", ko: ["핥다"] },
+      { en: "able", ko: ["할 수 있는", "유능한"] },
+      { en: "lickable", ko: ["핥아 먹을 수 있는"] },
+      { en: "extremely", ko: ["극도로", "매우"] },
+      { en: "impatient", ko: ["짜증난", "안달난", "참을성 없는"] },
+      { en: "out of sight", ko: ["눈에 보이지 않는 곳에", "먼 곳에"] },
+      { en: "burp", ko: ["트림을 시키다", "트림"] },
+      { en: "polite", ko: ["예의바른", "정중한"] },
+      { en: "skid", ko: ["미끄러지다", "미끄러짐"] },
+      { en: "halt", ko: ["정지시키다", "정지", "멈춤"] },
+      { en: "take a peek", ko: ["몰래 엿보다"] },
+      { en: "by now", ko: ["지금쯤", "이제"] },
+      { en: "lift", ko: ["들어 올리다", "향상시키다"] },
+      { en: "fizzy", ko: ["거품이 나는", "탄산의"] },
+      { en: "mumble", ko: ["중얼거리다", "중얼거림"] },
+    ]
+  },
+  {
+    id: "ch23-24",
+    title: "Chocolate Factory Ch. 23, 24",
+    words: [
+      { en: "row", ko: ["열", "일렬"] },
+      { en: "a number of", ko: ["얼마간의", "몇몇의"] },
+      { en: "there you are", ko: ["여기있다"] },
+      { en: "completely", ko: ["완전히"] },
+      { en: "argument", ko: ["논쟁", "주장"] },
+      { en: "adore", ko: ["아주 좋아하다"] },
+      { en: "a flight of stairs", ko: ["한줄로 이어진 계단", "계단"] },
+      { en: "out of breath", ko: ["숨이 가쁜"] },
+      { en: "banister", ko: ["난간"] },
+      { en: "never mind", ko: ["신경 쓰지 마", "걱정하지 마"] },
+      { en: "pant", ko: ["헐떡거리다"] },
+      { en: "best of all", ko: ["무엇보다도", "특히"] },
+      { en: "how dare you", ko: ["어떻게 감히 네가", "감히"] },
+      { en: "stare", ko: ["응시하다", "바라보다"] },
+      { en: "square", ko: ["정사각형", "광장", "제곱"] },
+      { en: "triumphantly", ko: ["의기양양하게", "우쭐대며"] },
+      { en: "lump", ko: ["덩어리"] },
+      { en: "pay attention to", ko: ["관심을 갖다"] },
+      { en: "corridor", ko: ["복도", "통로"] },
+      { en: "slide down", ko: ["미끄러져 내려가다"] },
+      { en: "whatever", ko: ["무엇이든지", "어떤 ~라도"] },
+      { en: "disturb", ko: ["방해하다", "혼란스럽게 하다"] },
+      { en: "sight", ko: ["광경"] },
+      { en: "amazing sight", ko: ["놀라운 광경"] },
+      { en: "walnut", ko: ["호두"] },
+      { en: "walnut shell", ko: ["호두 껍질", "호두껍질"] },
+      { en: "whole", ko: ["전체의", "전체"] },
+      { en: "for a moment", ko: ["잠시 동안"] },
+      { en: "mound", ko: ["흙더미", "언덕"] },
+      { en: "except", ko: ["을 제외하고", "제외하고"] },
+      { en: "beady", ko: ["반짝거리는", "반짝반짝 빛나는"] },
+      { en: "anchor", ko: ["닻", "닻을 내리다", "고정하다"] },
+      { en: "not for sale", ko: ["비매품", "판매를 위한 것이 아닌"] },
+      { en: "paw", ko: ["발", "동물의 발"] },
+      { en: "movement", ko: ["동작", "활동", "움직임"] },
+      { en: "leap", ko: ["뛰어넘다", "뛰다"] },
+      { en: "obvious", ko: ["분명한", "명백한", "확실한"] },
+      { en: "wretched", ko: ["비참한", "불쌍한"] },
+      { en: "knuckle", ko: ["손가락 관절", "관절"] },
+      { en: "hold tight", ko: ["꽉 잡다", "꽉 붙잡다"] },
+      { en: "hollow", ko: ["속이 빈", "속이 텅 빈"] },
+      { en: "lean", ko: ["기울다", "몸을 숙이다", "굽히다"] },
+      { en: "chute", ko: ["아래로 이동하는 장치", "낙하산", "활송 장치"] },
+    ]
+  },
+  {
+    id: "ch25-26",
+    title: "Chocolate Factory Ch. 25, 26",
+    words: [
+      { en: "lift", ko: ["들어 올리다", "승강기", "엘리베이터"] },
+      { en: "move on", ko: ["옮기다", "넘어가다", "계속하다"] },
+      { en: "disappear", ko: ["사라지다"] },
+      { en: "slid open", ko: ["미끄러지며 열리다"] },
+      { en: "astonishment", ko: ["놀람", "경악"] },
+      { en: "row", ko: ["열", "줄"] },
+      { en: "thumb", ko: ["엄지손가락"] },
+      { en: "stick out", ko: ["튀어나오다", "내밀다"] },
+      { en: "as though", ko: ["마치 ~인 것처럼", "마치 인 것처럼"] },
+      { en: "sting", ko: ["쏘다", "찌르다"] },
+      { en: "leap", ko: ["뛰어넘다"] },
+      { en: "wasp", ko: ["말벌"] },
+      { en: "whizzing", ko: ["윙 하는 소리"] },
+      { en: "violently", ko: ["격렬하게", "난폭하게", "거칠게"] },
+      { en: "take my hand", ko: ["내 손을 잡아"] },
+      { en: "strap", ko: ["끈"] },
+      { en: "stagger", ko: ["비틀거리다", "놀라게하다"] },
+      { en: "precipice", ko: ["벼랑", "절벽"] },
+      { en: "tamper", ko: ["함부로 만지다", "간섭하다"] },
+      { en: "collision", ko: ["충돌", "부딪침"] },
+      { en: "dazzle", ko: ["눈이 부시게 하다", "감동시키다"] },
+      { en: "blind", ko: ["눈이 먼", "눈이 멀게 만들다"] },
+      { en: "comfort", ko: ["평안함", "위로", "편안"] },
+      { en: "bare", ko: ["텅 빈"] },
+      { en: "cluster", ko: ["무리"] },
+      { en: "joint", ko: ["관절", "연결 부위"] },
+      { en: "ray", ko: ["광선"] },
+      { en: "miraculously", ko: ["기적적으로"] },
+      { en: "commercial", ko: ["광고 방송", "광고"] },
+      { en: "immediately", ko: ["즉시", "바로 옆에"] },
+      { en: "smaller", ko: ["더 작은"] },
+      { en: "electricity", ko: ["전기"] },
+      { en: "extraordinary", ko: ["비범한", "기이한"] },
+      { en: "photograph", ko: ["사진"] },
+      { en: "deaf", ko: ["귀가 먼"] },
+      { en: "exactly", ko: ["정확히"] },
+      { en: "tremendous", ko: ["엄청난", "대단한"] },
+      { en: "break up", ko: ["부서지다", "쪼개다"] },
+      { en: "forward", ko: ["앞쪽으로"] },
+    ]
+  },
+  {
+    id: "ch27-28",
+    title: "Chocolate Factory Ch. 27, 28",
+    words: [
+      { en: "stuff", ko: ["물건"] },
+      { en: "enormous", ko: ["거대한"] },
+      { en: "scatter", ko: ["뿌리다", "흩어지다"] },
+      { en: "mighty", ko: ["강력한", "장대한"] },
+      { en: "clasp", ko: ["움켜쥐다", "껴안다", "잠그다", "걸쇠"] },
+      { en: "flicker", ko: ["깜박거리다", "스치다", "깜박거림"] },
+      { en: "squeak", ko: ["끽 하는 소리를 내다", "끼익 하는 소리"] },
+      { en: "certainly", ko: ["확실히"] },
+      { en: "pistol", ko: ["권총"] },
+      { en: "tantrum", ko: ["짜증을 냄", "짜증"] },
+      { en: "shove", ko: ["밀치다", "떠밀다", "밀침"] },
+      { en: "breast", ko: ["가슴", "유방"] },
+      { en: "furious", ko: ["격노한", "맹렬한"] },
+      { en: "gaze", ko: ["응시하다", "응시"] },
+      { en: "overdose", ko: ["약물 과다복용", "과다복용"] },
+      { en: "instruction", ko: ["설명", "지시"] },
+      { en: "stare", ko: ["응시하다"] },
+      { en: "tightly", ko: ["꼭", "꽉", "단단히"] },
+      { en: "furiously", ko: ["미친듯이 노하여", "광란하여"] },
+      { en: "absolutely", ko: ["전적으로", "틀림없이"] },
+      { en: "delighted", ko: ["아주 기뻐하는"] },
+      { en: "hunch", ko: ["구부리다", "예감"] },
+      { en: "terrific", ko: ["훌륭한", "멋진"] },
+      { en: "arrangement", ko: ["준비", "합의", "배치"] },
+      { en: "fetch", ko: ["가지고 오다", "팔리다"] },
+      { en: "frightened", ko: ["겁먹은"] },
+      { en: "cling", ko: ["꼭 붙잡다", "달라붙다"] },
+      { en: "longing", ko: ["갈망", "열망", "갈망하는"] },
+      { en: "tremendous", ko: ["엄청난", "대단한"] },
+      { en: "splinter", ko: ["조각", "쪼개다"] },
+      { en: "eerie", ko: ["괴상한"] },
+    ]
+  },
+  {
+    id: "ch29-30",
+    title: "Chocolate Factory Ch. 29, 30",
+    words: [
+      { en: "gigantic", ko: ["거대한"] },
+      { en: "supply", ko: ["공급하다", "공급", "공급품"] },
+      { en: "brim", ko: ["위 끝부분", "끝부분"] },
+      { en: "astonish", ko: ["깜짝 놀라게 하다"] },
+      { en: "gracious", ko: ["우아한", "품위있는"] },
+      { en: "rubbish", ko: ["쓰레기", "혹평하다"] },
+      { en: "dreadful", ko: ["지독한"] },
+      { en: "hover", ko: ["맴돌다"] },
+      { en: "gaze", ko: ["응시하다", "응시"] },
+      { en: "indeed", ko: ["참으로", "정말"] },
+      { en: "cock", ko: ["수탉", "꼭지", "곤추세우다"] },
+      { en: "wrinkle", ko: ["주름"] },
+      { en: "broadly", ko: ["대략적으로"] },
+      { en: "sensible", ko: ["합리적인", "현명한"] },
+      { en: "precious", ko: ["귀중한"] },
+      { en: "stammer", ko: ["말을 더듬다", "말 더듬기"] },
+      { en: "enormous", ko: ["거대한"] },
+      { en: "fetch", ko: ["가지고 오다", "팔리다"] },
+      { en: "peer", ko: ["또래", "자세히 들여다보다"] },
+      { en: "cottage", ko: ["작은 집", "시골집"] },
+      { en: "despair", ko: ["절망", "절망하다"] },
+      { en: "faint", ko: ["희미한", "기절하다"] },
+      { en: "frighten", ko: ["겁먹게 하다", "깜짝 놀라게 하다"] },
+      { en: "hovering", ko: ["공중에 떠 있는", "떠 있는"] },
+      { en: "astonished", ko: ["깜짝 놀란", "놀라서"] },
+      { en: "peering", ko: ["유심히 바라보다"] },
+      { en: "thin as a straw", ko: ["빨대처럼 말랐다", "빨대처럼 마른"] },
+      { en: "de-juice", ko: ["짜내다", "즙을 짜내다", "액체를 짜내다"] },
+      { en: "thin as a wire", ko: ["철사처럼 마른"] },
+      { en: "careless", ko: ["부주의한", "조심하지 못한"] },
+      { en: "make you a present of", ko: ["선물로 주다"] },
+      { en: "stared", ko: ["뚫어지게 쳐다봤다", "쳐다봤다"] },
+      { en: "smiling broadly", ko: ["활짝 웃으며"] },
+      { en: "deadly serious", ko: ["정말 심각한", "진심인"] },
+      { en: "for the sake of", ko: ["을 위하여", "위하여"] },
+      { en: "take over", ko: ["인계받다", "이어받다"] },
+      { en: "at the end of the day", ko: ["결국", "마지막에는"] },
+    ]
+  },
+  {
+    id: "re-8",
+    title: "R.E Foundation Unit 8A, 8B",
+    words: [
+      { en: "look out", ko: ["주의하다", "조심하다"] },
+      { en: "adult", ko: ["어른"] },
+      { en: "weigh", ko: ["무게가 ~이다", "무게를 달다"] },
+      { en: "lay", ko: ["놓다", "알을 낳다"] },
+      { en: "skin", ko: ["피부"] },
+      { en: "leave for", ko: ["로 떠나다", "~로 떠나다"] },
+      { en: "hatch", ko: ["부화하다", "출입문"] },
+      { en: "chick", ko: ["병아리", "새끼 새"] },
+      { en: "freeze", ko: ["얼다", "몹시 춥다"] },
+      { en: "parents", ko: ["부모님"] },
+      { en: "careful", ko: ["조심스러운"] },
+      { en: "take turns", ko: ["교대로 하다"] },
+      { en: "on its own", ko: ["그것 스스로", "스스로"] },
+      { en: "enter", ko: ["들어가다", "~에 들어가다"] },
+      { en: "fear", ko: ["공포"] },
+      { en: "relationship", ko: ["관계"] },
+      { en: "sense of humor", ko: ["유머 감각"] },
+      { en: "get along", ko: ["잘 해나가다"] },
+      { en: "in fact", ko: ["사실은", "실제로는"] },
+      { en: "laugh", ko: ["웃다", "웃음"] },
+      { en: "disappointed", ko: ["실망한"] },
+      { en: "joke", ko: ["농담", "장난"] },
+      { en: "place", ko: ["장소"] },
+      { en: "behavior", ko: ["행동", "태도"] },
+      { en: "purpose", ko: ["목적"] },
+      { en: "hilarious", ko: ["아주 우스운", "재미있는"] },
+      { en: "tusk", ko: ["엄니", "상아"] },
+      { en: "sensitive", ko: ["민감한", "예민한"] },
+      { en: "certain", ko: ["확실한", "어떤"] },
+      { en: "useful", ko: ["유용한"] },
+      { en: "group", ko: ["무리"] },
+      { en: "cover", ko: ["덮다"] },
+      { en: "protect", ko: ["보호하다"] },
+      { en: "conditions", ko: ["환경", "상황"] },
+      { en: "leave", ko: ["떠나다"] },
+      { en: "return", ko: ["돌아오다"] },
+      { en: "several", ko: ["여러 번", "몇번"] },
+      { en: "hungry", ko: ["배고픈"] },
+      { en: "rapidly", ko: ["빠르게"] },
+      { en: "grow", ko: ["자라다"] },
+      { en: "emotion", ko: ["감정"] },
+      { en: "loudly", ko: ["크게", "소리로"] },
+      { en: "research", ko: ["연구"] },
+      { en: "record", ko: ["녹음하다", "기록하다"] },
+      { en: "clue", ko: ["단서", "힌트"] },
+      { en: "perhaps", ko: ["아마도"] },
+    ]
+  },
+  {
+    id: "re-9",
+    title: "R.E Foundation Unit 9A, 9B",
+    words: [
+      { en: "monument", ko: ["기념물"] },
+      { en: "emperor", ko: ["황제"] },
+      { en: "marble", ko: ["대리석"] },
+      { en: "poem", ko: ["시"] },
+      { en: "empress", ko: ["황후"] },
+      { en: "together", ko: ["함께"] },
+      { en: "during", ko: ["동안", "~동안"] },
+      { en: "birth", ko: ["출생"] },
+      { en: "promise", ko: ["약속하다", "약속"] },
+      { en: "central", ko: ["중심의"] },
+      { en: "dome", ko: ["돔", "반구형의 것"] },
+      { en: "finish", ko: ["끝마치다", "끝나다"] },
+      { en: "prison", ko: ["감옥"] },
+      { en: "complete", ko: ["완벽한", "완료하다", "완성하다"] },
+      { en: "supposedly", ko: ["아마"] },
+      { en: "tourist", ko: ["여행가", "관광객"] },
+      { en: "sight", ko: ["명소", "관광지"] },
+      { en: "cathedral", ko: ["대성당"] },
+      { en: "belong to", ko: ["소유이다", "에 속하다"] },
+      { en: "concrete", ko: ["구체적인"] },
+      { en: "wider", ko: ["더 넓게"] },
+      { en: "remain", ko: ["남아 있다", "남은 것", "유물"] },
+      { en: "solution", ko: ["해결책"] },
+      { en: "light", ko: ["빛", "밝은", "가벼운"] },
+      { en: "lift", ko: ["들어 올리다", "향상시키다", "승강기"] },
+      { en: "invent", ko: ["발명하다"] },
+      { en: "design", ko: ["디자인", "설계", "디자인하다"] },
+      { en: "incredible", ko: ["대단한", "믿을 수 없는"] },
+      { en: "structure", ko: ["구조", "조직"] },
+      { en: "semicircle", ko: ["반원"] },
+      { en: "octagon", ko: ["8각형", "팔각형"] },
+      { en: "arch", ko: ["아치", "아치형 구조물"] },
+      { en: "expression", ko: ["표현"] },
+      { en: "finished", ko: ["완성된"] },
+      { en: "legends", ko: ["전설"] },
+      { en: "probably", ko: ["아마도"] },
+      { en: "clockmaker", ko: ["시계 장인"] },
+      { en: "project", ko: ["프로젝트", "큰일"] },
+      { en: "remained", ko: ["남아있다", "계속 ~한 상태이다"] },
+      { en: "outer", ko: ["바깥의"] },
+      { en: "material", ko: ["재료", "재질"] },
+      { en: "huge", ko: ["아주 큰"] },
+      { en: "task", ko: ["큰일", "임무"] },
+      { en: "largest", ko: ["가장 큰"] },
+      { en: "belonged", ko: ["에 속했다", "속했다"] },
+      { en: "job", ko: ["일"] },
+      { en: "began", ko: ["시작했다"] },
+      { en: "fall", ko: ["떨어지다"] },
+      { en: "unfinished", ko: ["미완성의"] },
+      { en: "brick", ko: ["벽돌"] },
+      { en: "lighter", ko: ["더 가벼운"] },
+      { en: "rings", ko: ["고리", "띠"] },
+      { en: "wood", ko: ["나무"] },
+      { en: "iron", ko: ["철"] },
+      { en: "machine", ko: ["기계"] },
+      { en: "left", ko: ["남겼다"] },
+      { en: "expert", ko: ["전문가"] },
+      { en: "built", ko: ["지었다"] },
+    ]
+  },
+  {
+    id: "re-10",
+    title: "R.E Foundation Unit 10A, 10B",
+    words: [
+      { en: "flooding", ko: ["홍수", "범람"] },
+      { en: "forecast", ko: ["예보", "예측", "예보하다"] },
+      { en: "predict", ko: ["예측하다"] },
+      { en: "large", ko: ["큰", "많은"] },
+      { en: "float", ko: ["뜨다", "떠다니다"] },
+      { en: "wash away", ko: ["씻어 내다"] },
+      { en: "at least", ko: ["적어도", "최소한"] },
+      { en: "drought", ko: ["가뭄"] },
+      { en: "power", ko: ["힘", "권력"] },
+      { en: "financial", ko: ["금융의"] },
+      { en: "blame", ko: ["비난하다", "을 탓하다", "비난"] },
+      { en: "temperature", ko: ["온도", "체온"] },
+      { en: "from time to time", ko: ["가끔"] },
+      { en: "deliver", ko: ["전달하다", "연설을 하다"] },
+      { en: "unusual", ko: ["보통이 아닌", "독특한"] },
+      { en: "warning", ko: ["경고", "주의"] },
+      { en: "local", ko: ["지역의"] },
+      { en: "explode", ko: ["폭발하다"] },
+      { en: "suck up", ko: ["빨아들이다"] },
+      { en: "drop", ko: ["떨어뜨리다", "떨어지다", "방울"] },
+      { en: "as if", ko: ["마치 ~인 것처럼", "마치 인 것처럼"] },
+      { en: "actually", ko: ["실제로"] },
+      { en: "hailstone", ko: ["우박"] },
+      { en: "increase", ko: ["증가하다", "증가"] },
+      { en: "experience", ko: ["경험", "경험하다"] },
+      { en: "average", ko: ["평균의", "보통의", "평균"] },
+      { en: "spin", ko: ["돌다", "돌리다", "회전"] },
+      { en: "form", ko: ["형태", "형성하다", "만들다"] },
+      { en: "flood", ko: ["홍수 나다", "물에 잠기다"] },
+      { en: "affect", ko: ["영향을 주다"] },
+      { en: "destroy", ko: ["파괴하다"] },
+      { en: "strike", ko: ["치다", "강타하다"] },
+      { en: "heat wave", ko: ["폭염"] },
+      { en: "cause", ko: ["원인", "일으키다"] },
+      { en: "frequent", ko: ["자주 일어나는"] },
+      { en: "global warming", ko: ["지구 온난화"] },
+      { en: "prepare", ko: ["준비하다"] },
+      { en: "save lives", ko: ["생명을 구하다"] },
+      { en: "replace", ko: ["대신하다"] },
+      { en: "behavior", ko: ["행동"] },
+      { en: "skeleton", ko: ["해골"] },
+      { en: "skull", ko: ["두개골"] },
+      { en: "become", ko: ["이 되다", "~이 되다"] },
+      { en: "natural", ko: ["자연의", "자연스러운"] },
+      { en: "warmer", ko: ["더 따뜻한"] },
+      { en: "creature", ko: ["생물", "동물"] },
+      { en: "fill with", ko: ["로 가득 채우다", "~로 가득 채우다"] },
+    ]
+  },
+  {
+    id: "re-11",
+    title: "R.E Foundation Unit 11A, 11B",
+    words: [
+      { en: "tusk", ko: ["엄니", "상아"] },
+      { en: "Ice Age", ko: ["빙하기"] },
+      { en: "extinct", ko: ["멸종된", "사라진"] },
+      { en: "reindeer", ko: ["순록"] },
+      { en: "herder", ko: ["양치기"] },
+      { en: "advice", ko: ["충고"] },
+      { en: "disappear", ko: ["사라지다"] },
+      { en: "lean", ko: ["기대다", "몸을 숙이다"] },
+      { en: "store", ko: ["가게"] },
+      { en: "nearby", ko: ["근처에", "인근의"] },
+      { en: "perfect", ko: ["완벽한"] },
+      { en: "imagine", ko: ["상상하다"] },
+      { en: "in detail", ko: ["상세하게"] },
+      { en: "sequence", ko: ["연속적인 사건들", "순서"] },
+      { en: "mud", ko: ["진흙"] },
+      { en: "further", ko: ["더 멀리에", "더 나아가", "더 이상의"] },
+      { en: "jaw", ko: ["턱"] },
+      { en: "definitely", ko: ["확실히", "분명히"] },
+      { en: "cover", ko: ["덮다", "포함하다", "덮개", "책의 표지"] },
+      { en: "climb", ko: ["오르다", "등반하다"] },
+      { en: "predator", ko: ["약탈자", "포식 동물", "포식자"] },
+      { en: "way", ko: ["길", "방법"] },
+      { en: "hunt", ko: ["사냥하다", "사냥"] },
+      { en: "meanwhile", ko: ["그 동안에"] },
+      { en: "rise", ko: ["일어나다", "증가하다", "해가 뜨다"] },
+      { en: "toward", ko: ["쪽으로", "~쪽으로"] },
+      { en: "prehistoric", ko: ["선사시대의"] },
+      { en: "develop", ko: ["개발하다", "발전시키다"] },
+      { en: "skull", ko: ["두개골"] },
+      { en: "narrow", ko: ["좁은", "한정된"] },
+    ]
+  },
+  {
+    id: "re-12",
+    title: "R.E Foundation Unit 12A, 12B",
+    words: [
+      { en: "movement", ko: ["동작", "활동"] },
+      { en: "daily", ko: ["매일", "나날이", "매일의"] },
+      { en: "elderly", ko: ["연세가 드신", "나이드신"] },
+      { en: "simple", ko: ["단순한", "간단한"] },
+      { en: "factory", ko: ["공장"] },
+      { en: "operate", ko: ["조작하다", "수술하다"] },
+      { en: "backflip", ko: ["뒤로 공중제비를 넘다", "공중제비"] },
+      { en: "uncomfortable", ko: ["불편한", "불쾌한"] },
+      { en: "humanlike", ko: ["인간 같은", "인간다운"] },
+      { en: "act", ko: ["행동", "행동하다", "연기하다"] },
+      { en: "rough", ko: ["거친", "힘든", "대충의"] },
+      { en: "sign", ko: ["서명하다", "표지판"] },
+      { en: "look for", ko: ["찾다", "구하다"] },
+      { en: "include", ko: ["포함하다"] },
+      { en: "perhaps", ko: ["아마", "어쩌면"] },
+      { en: "mirror", ko: ["거울"] },
+      { en: "recently", ko: ["최근에"] },
+      { en: "nanotechnology", ko: ["나노 기술", "나노기술"] },
+      { en: "get dressed", ko: ["옷을 입다"] },
+      { en: "turn", ko: ["돌다", "돌리다", "변하다"] },
+      { en: "contain", ko: ["들어있다"] },
+      { en: "electricity", ko: ["전기"] },
+      { en: "program", ko: ["프로그램"] },
+      { en: "pick up", ko: ["포착하다", "입수하다"] },
+      { en: "sleeve", ko: ["소매", "음반 재킷"] },
+      { en: "voice", ko: ["목소리"] },
+      { en: "replace", ko: ["대체하다", "교체하다"] },
+      { en: "fridge", ko: ["냉장고"] },
+      { en: "drone", ko: ["무인비행기", "드론"] },
+      { en: "communicate", ko: ["의사소통하다"] },
+      { en: "facial expression", ko: ["얼굴 표정"] },
+      { en: "emotion", ko: ["감정"] },
+      { en: "advanced", ko: ["선진의", "상급의", "후기의"] },
+      { en: "common", ko: ["흔한", "공통의"] },
+    ]
+  },
+  {
+    id: "ted-hurricanes",
+    title: "Ted: Hurricanes (R.E 5, U4)",
+    words: [
+      { en: "unpredictable", ko: ["예측하기 어려운"] },
+      { en: "thorough", ko: ["철저한", "아주 자세한"] },
+      { en: "sustain", ko: ["유지하다"] },
+      { en: "atmosphere", ko: ["대기"] },
+      { en: "converted", ko: ["바뀐", "전환된"] },
+      { en: "circular", ko: ["원형의"] },
+      { en: "low-pressure", ko: ["저기압의"] },
+      { en: "radius", ko: ["반지름", "반경", "범위"] },
+      { en: "eerie", ko: ["이상하게 조용한", "으스스한"] },
+      { en: "calm", ko: ["고요함"] },
+      { en: "encircling", ko: ["둘러싸는"] },
+      { en: "towering", ko: ["매우 높은"] },
+      { en: "curved", ko: ["휘어진"] },
+      { en: "band", ko: ["밴드", "악단", "끈"] },
+      { en: "releasing", ko: ["방출하는", "내보내는"] },
+      { en: "ranking", ko: ["등급"] },
+      { en: "category", ko: ["분류", "범주"] },
+      { en: "scale", ko: ["등급표", "규모", "등급", "눈금"] },
+      { en: "potential", ko: ["잠재적인", "가능성이 있는"] },
+      { en: "component", ko: ["구성 요소"] },
+      { en: "surge", ko: ["쇄도하다", "급등하다", "갑자기 높아지다"] },
+      { en: "approaching", ko: ["다가오는"] },
+      { en: "shoreline", ko: ["해안선"] },
+      { en: "extend", ko: ["뻗다", "확장되다"] },
+      { en: "devastation", ko: ["대규모 파괴", "파괴"] },
+      { en: "natural disasters", ko: ["자연재해"] },
+      { en: "ecosystem", ko: ["생태계"] },
+      { en: "regulate", ko: ["조절하다"] },
+      { en: "equator", ko: ["적도"] },
+      { en: "pole", ko: ["극지방", "극"] },
+      { en: "stable", ko: ["안정된"] },
+      { en: "predict", ko: ["예측하다"] },
+      { en: "infrastructure", ko: ["사회 기반 시설", "기반 시설"] },
+      { en: "complex", ko: ["복잡한"] },
+      { en: "minimize", ko: ["최소화하다"] },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════════════════════════════════
+let state = {
+  selectedChapterIds: new Set(),
+  queue: [], idx: 0, feedback: null,
+  wrongs: new Set(),
+  correct: 0, attempts: 0, round: 1,
+  selectedVoice: null,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Utilities
+// ═══════════════════════════════════════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Levenshtein edit distance (for fuzzy answer matching & pronunciation grading)
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+    }
+  }
+  return dp[m][n];
+}
+
+// Strip common Korean particles from the end of each whitespace-separated token.
+// e.g. "비명을 지르다" → "비명 지르다"  (을 stripped)
+const KOREAN_PARTICLES = ["에서", "에게", "으로", "부터", "까지", "을", "를", "이", "가", "은", "는", "에", "의", "와", "과", "도", "만", "로"];
+function stripKoreanParticles(s) {
+  return s.split(/\s+/).map(w => {
+    for (const p of KOREAN_PARTICLES) {
+      if (w.length > p.length && w.endsWith(p)) return w.slice(0, -p.length);
+    }
+    return w;
+  }).join("");
+}
+
+// Korean synonym groups — any word in the group is considered equivalent to the others.
+// Covers common meaning variations for vocabulary in this app.
+const KOREAN_SYNONYMS = [
+  // Body parts
+  ["배", "복부", "뱃속", "위"],
+  ["해골", "두개골", "뼈대", "골격"],
+  ["가슴", "흉부", "유방"],
+  ["머리", "두뇌"],
+  ["눈", "시력", "시야", "시각"],
+  ["얼굴", "안면"],
+  ["손가락 관절", "손가락뼈", "관절"],
+  ["엄지손가락", "엄지"],
+  ["엄니", "상아"],
+  ["턱", "턱뼈"],
+  ["콧수염", "수염"],
+  ["털이 많은", "털북숭이의"],
+  ["대머리의", "머리가 벗겨진"],
+
+  // Sizes & descriptors
+  ["거대한", "엄청난", "큰", "커다란", "어마어마한", "굉장히 큰"],
+  ["아주 큰", "거대한", "엄청난"],
+  ["강력한", "강한", "장대한", "힘센"],
+  ["엄청난", "대단한", "거대한"],
+  ["훌륭한", "멋진", "대단한", "굉장한"],
+  ["멋진", "훌륭한", "굉장한", "좋은", "끝내주는"],
+  ["굉장한", "멋진", "훌륭한", "대단한", "엄청난"],
+  ["기막히게 좋은", "경탄할 만한", "훌륭한", "멋진"],
+  ["대단히 훌륭한", "놀라운", "멋진"],
+  ["무척 기분 좋은", "기분 좋은", "기쁜", "즐거운"],
+  ["기쁜", "즐거운", "행복한", "좋은"],
+  ["완벽한", "완전한"],
+  ["완전히", "전적으로", "모두", "죄다"],
+  ["전적으로", "완전히", "틀림없이"],
+
+  // Emotions / states
+  ["깜짝 놀라게 하다", "놀라게 하다", "놀래주다", "깜짝 놀래다"],
+  ["놀람", "경악", "깜짝 놀람"],
+  ["깜짝 놀란", "놀라서", "놀란"],
+  ["겁먹은", "무서워하는", "겁에 질린"],
+  ["겁먹게 하다", "무섭게 하다", "깜짝 놀라게 하다"],
+  ["무섭게", "두렵게", "겁나게"],
+  ["무서운", "두려운", "겁나는"],
+  ["아주 기뻐하는", "기뻐하는", "기쁜"],
+  ["격노한", "맹렬한", "화난", "분노한"],
+  ["미친듯이 노하여", "광란하여", "격노하여"],
+  ["절망", "절망하다", "낙담"],
+  ["걱정하는", "열망하는", "불안한"],
+  ["짜증난", "안달난", "참을성 없는", "조급한"],
+
+  // Actions
+  ["사라지다", "없어지다", "자취를 감추다", "사라지다", "안 보이다"],
+  ["죽이다", "살인", "살해하다", "죽이다"],
+  ["때려 부수다", "박살내다", "부수다"],
+  ["떠나다", "출발하다", "가다"],
+  ["출발", "떠남", "시작"],
+  ["여행", "여정", "이동"],
+  ["발명하다", "만들어내다", "창조하다"],
+  ["용서하다", "사해주다", "관용하다"],
+  ["논쟁하다", "주장하다", "말싸움하다", "다투다"],
+  ["응시하다", "바라보다", "쳐다보다", "주시하다", "노려보다"],
+  ["바라보다", "쳐다보다", "응시하다"],
+  ["쳐다보다", "바라보다", "응시하다"],
+  ["유심히 바라보다", "자세히 보다", "들여다보다"],
+  ["자세히 들여다보다", "유심히 보다", "자세히 보다"],
+  ["뛰어넘다", "뛰다", "점프하다", "도약하다"],
+  ["뛰다", "달리다", "뛰어가다"],
+  ["달리다", "뛰다", "달려가다"],
+  ["핥다", "빨다", "혓바닥으로 닦다"],
+  ["빨다", "빨아먹다", "흡입하다", "빨아들이다"],
+  ["빨아들이기", "흡입", "빨아들임"],
+  ["빨아들이다", "빨다", "흡입하다"],
+  ["끓다", "삶다", "끓이다"],
+  ["터지다", "갑자기 나타나다", "폭발하다", "파열되다"],
+  ["파열", "폭발", "터짐"],
+  ["웃다", "웃음", "깔깔 웃다"],
+  ["웃음", "웃는 것"],
+  ["웃음을 터트리다", "웃음 터지다", "폭소하다", "웃음이 터지다"],
+  ["비명 지르다", "비명을 지르다", "소리 지르다", "날카로운 소리를 내다"],
+  ["비명소리", "비명", "날카로운 소리"],
+  ["굶주리다", "굶다", "배고프다", "갈망하다"],
+  ["굶어 죽다", "아사하다", "굶어 사망하다"],
+  ["침착해", "침착하다", "차분하다", "진정하다"],
+  ["거대한", "엄청나게 큰", "아주 큰"],
+  ["강둑", "제방", "기슭"],
+  ["반짝이다", "번들거리다", "빛나다", "광택이 나다"],
+  ["기막히게 좋은", "훌륭한", "멋진", "경탄할 만한"],
+  ["끈적끈적한", "끈적한", "달라붙는"],
+  ["흔들다", "움직이다", "좌우로 움직이다"],
+  ["귀가 먼", "청각장애의", "귀머거리의"],
+  ["표면", "겉면", "바깥면"],
+  ["벗다", "벗어내다"],
+  ["즉시", "당장", "바로", "곧"],
+  ["바로 옆에", "즉시", "바로"],
+  ["적절하게", "제대로", "올바르게"],
+  ["갑자기 보다", "찾다", "시력"],
+  ["금이 위에 둘러진", "금으로 덮인", "금박의"],
+  ["시력", "시야", "시각", "보는 힘"],
+  ["광경", "풍경", "장면"],
+  ["놀라운 광경", "경이로운 풍경", "대단한 광경"],
+  ["별난", "기묘한", "이상한", "특이한"],
+  ["이상한", "별난", "특이한", "기이한"],
+  ["비범한", "기이한", "놀라운", "특별한"],
+  ["즉시", "바로", "당장", "곧"],
+  ["싹이 나다", "새싹이 나다", "생기다", "나타나다"],
+  ["곱슬머리", "꼬불거리는 머리"],
+  ["곱슬곱슬하게 하다", "말다", "감다"],
+  ["돌돌 감다", "감다", "말다"],
+  ["개최되다", "사건이 일어나다", "발생하다", "일어나다"],
+  ["사건이 일어나다", "발생하다", "일어나다"],
+  ["발", "발바닥"],
+  ["동물의 발", "발", "앞발"],
+  ["동작", "활동", "움직임", "행동"],
+  ["움직임", "동작", "활동"],
+  ["통", "배럴", "큰 통"],
+  ["재해", "재난", "재앙", "불행", "참사"],
+  ["재난", "재해", "재앙", "참사"],
+  ["기분 좋은", "기쁜", "마음에 드는", "즐거운", "유쾌한"],
+  ["마음에 드는", "좋아하는", "즐거운"],
+  ["뒤집어엎다", "때려눕히다", "쓰러뜨리다"],
+  ["쓰러뜨리다", "넘어뜨리다", "뒤집어엎다"],
+  ["귀중한", "소중한", "값진", "중요한"],
+  ["소중한", "귀중한", "값진"],
+  ["신품의", "새로운", "갓 만든"],
+  ["새로운", "신품의", "참신한"],
+  ["용돈", "소액의 돈"],
+  ["마녀", "마법사 여자"],
+  ["주전자", "물주전자"],
+  ["적어도", "최소한", "못해도"],
+  ["최소한", "적어도", "못해도"],
+  ["비밀의", "개인적인", "사적인"],
+  ["개인적인", "사적인", "비밀의"],
+  ["출입금지", "들어가지 마", "못 들어감"],
+  ["전체의", "모든", "온"],
+  ["열쇠 구멍", "열쇠 구멍"],
+  ["우뚝 솟아있다", "높이 솟다", "치솟다"],
+  ["아래쪽으로", "아래로", "밑으로"],
+  ["계속되다", "계속 하다", "이어지다", "진행되다"],
+  ["찰싹 때리다", "때리다"],
+  ["들어 올리다", "향상시키다", "올리다", "높이다"],
+  ["승강기", "엘리베이터"],
+  ["엘리베이터", "승강기"],
+  ["옮기다", "이동하다", "넘어가다", "계속하다"],
+  ["벼랑", "절벽", "낭떠러지"],
+  ["절벽", "벼랑", "낭떠러지"],
+  ["충돌", "부딪침", "접촉"],
+  ["평안함", "위로", "편안", "안락"],
+  ["위로", "편안함", "안락"],
+  ["텅 빈", "비어있는", "공허한"],
+  ["광선", "빛줄기", "햇살"],
+  ["기적적으로", "놀랍게도"],
+  ["광고 방송", "광고", "CM"],
+  ["광고", "광고 방송"],
+  ["더 작은", "작아진", "작은"],
+  ["전기", "전력"],
+  ["사진", "포토", "영상"],
+  ["정확히", "꼭", "틀림없이", "확실하게"],
+  ["엄청난", "대단한", "거대한", "어마어마한"],
+  ["부서지다", "쪼개다", "깨지다"],
+  ["쪼개다", "부수다", "나누다"],
+  ["앞쪽으로", "앞으로"],
+  ["물건", "것", "물체"],
+  ["거대한", "큰"],
+  ["뿌리다", "흩어지다", "산재시키다"],
+  ["흩어지다", "분산되다"],
+  ["움켜쥐다", "껴안다", "잡다", "꽉 잡다"],
+  ["껴안다", "감싸다", "안다"],
+  ["걸쇠", "움켜쥐기", "잠금쇠"],
+  ["깜박거리다", "반짝이다", "스치다"],
+  ["끽 하는 소리를 내다", "끽끽 소리 내다"],
+  ["확실히", "분명히", "틀림없이"],
+  ["권총", "리볼버", "총"],
+  ["짜증을 냄", "성질 부림", "심통"],
+  ["밀치다", "떠밀다", "밀다"],
+  ["떠밀다", "밀치다"],
+  ["밀침", "밀치는 것"],
+  ["가슴", "흉부", "유방"],
+  ["약물 과다복용", "과다복용"],
+  ["설명", "지시", "안내"],
+  ["지시", "명령", "설명"],
+  ["꼭", "꽉", "단단히", "세게"],
+  ["꽉", "단단히", "꼭"],
+  ["갈망", "열망", "간절히 바람"],
+  ["열망", "갈망", "간절히 원함"],
+  ["갈망하는", "열망하는"],
+  ["조각", "파편"],
+  ["괴상한", "이상한", "섬뜩한", "기묘한"],
+  ["준비", "합의", "배치", "정리"],
+  ["가지고 오다", "팔리다", "가져오다"],
+  ["구부리다", "굽히다"],
+  ["예감", "직감", "느낌"],
+  ["훌륭한", "멋진", "대단한"],
+  ["꼭 붙잡다", "달라붙다", "매달리다"],
+  ["달라붙다", "붙잡다", "매달리다"],
+  ["공급하다", "제공하다", "대다"],
+  ["공급", "공급품", "보급"],
+  ["공급품", "공급물", "보급품"],
+  ["위 끝부분", "가장자리", "끝부분"],
+  ["끝부분", "모서리", "가장자리"],
+  ["우아한", "품위있는", "고상한"],
+  ["품위있는", "우아한", "고상한"],
+  ["쓰레기", "쓰레기같은 것", "잡동사니", "쓸모없는 것"],
+  ["혹평하다", "비난하다", "깎아내리다"],
+  ["지독한", "끔찍한", "무시무시한"],
+  ["맴돌다", "떠다니다", "공중에 떠 있다"],
+  ["참으로", "정말", "진실로", "실로"],
+  ["정말", "진짜로", "참으로"],
+  ["수탉", "꼭지", "곧추세우다"],
+  ["주름", "주름살", "구김살"],
+  ["대략적으로", "대충", "폭넓게"],
+  ["합리적인", "현명한", "이성적인"],
+  ["현명한", "슬기로운", "지혜로운"],
+  ["말을 더듬다", "더듬으며 말하다"],
+  ["말 더듬기", "말 더듬음"],
+  ["또래", "동년배"],
+  ["자세히 들여다보다", "유심히 보다", "자세히 보다"],
+  ["작은 집", "오두막집", "시골집"],
+  ["희미한", "흐릿한", "어렴풋한"],
+  ["기절하다", "실신하다", "정신을 잃다"],
+  ["공중에 떠 있는", "떠 있는", "맴도는"],
+  ["떠 있는", "떠다니는"],
+  ["철사처럼 마른", "빼빼 마른", "매우 마른"],
+  ["빨대처럼 말랐다", "매우 마르다", "빼빼 마르다"],
+  ["부주의한", "조심하지 못한", "경솔한"],
+  ["조심하지 못한", "부주의한"],
+  ["뚫어지게 쳐다봤다", "쳐다봤다", "응시했다"],
+  ["활짝 웃으며", "환하게 웃으며"],
+  ["정말 심각한", "진심인", "진지한"],
+  ["진심인", "진심의", "진지한"],
+  ["을 위하여", "위하여", "위해서"],
+  ["인계받다", "이어받다", "넘겨받다"],
+  ["이어받다", "인계받다", "계승하다"],
+  ["결국", "마지막에는", "마침내"],
+  ["마지막에는", "결국", "끝내"],
+  // Common descriptors
+  ["인간", "사람", "인간"],
+  ["사람", "인간"],
+  ["표면", "겉"],
+  ["재료", "재질", "소재"],
+  ["재질", "재료", "소재"],
+  ["끈", "벨트", "스트랩"],
+  ["열", "줄", "일렬"],
+  ["줄", "열", "라인"],
+  ["열쇠", "키"],
+  // Homework/R.E words
+  ["부화하다", "알에서 깨다"],
+  ["병아리", "새끼 닭", "새끼 새"],
+  ["얼다", "몹시 춥다", "결빙하다"],
+  ["부모님", "엄마 아빠", "부모"],
+  ["조심스러운", "신중한", "조심하는"],
+  ["교대로 하다", "번갈아 하다", "돌아가며 하다"],
+  ["들어가다", "입장하다"],
+  ["공포", "두려움", "무서움"],
+  ["관계", "사이", "연결"],
+  ["유머 감각", "웃음 감각"],
+  ["잘 해나가다", "사이좋게 지내다"],
+  ["사실은", "실제로는", "정말로"],
+  ["실망한", "낙담한"],
+  ["농담", "장난"],
+  ["장소", "곳", "자리"],
+  ["행동", "태도", "품행"],
+  ["태도", "자세", "행동"],
+  ["목적", "의도", "뜻"],
+  ["아주 우스운", "재미있는", "폭소의"],
+  ["재미있는", "흥미로운", "즐거운"],
+  ["민감한", "예민한", "섬세한"],
+  ["예민한", "민감한"],
+  ["확실한", "어떤", "명백한"],
+  ["유용한", "쓸모있는", "이로운"],
+  ["무리", "집단", "그룹"],
+  ["덮다", "포함하다", "씌우다"],
+  ["포함하다", "들어있다", "담다"],
+  ["보호하다", "지키다", "방어하다"],
+  ["환경", "상황", "여건"],
+  ["상황", "환경", "사정"],
+  ["떠나다", "출발하다", "가다"],
+  ["돌아오다", "귀환하다"],
+  ["여러 번", "몇 번", "수 회"],
+  ["몇번", "여러 번", "여러 번"],
+  ["배고픈", "시장한", "허기진"],
+  ["빠르게", "신속하게", "재빨리"],
+  ["자라다", "성장하다", "크다"],
+  ["감정", "기분", "심정"],
+  ["크게", "소리로", "큰 목소리로"],
+  ["연구", "조사", "리서치"],
+  ["녹음하다", "기록하다", "녹화하다"],
+  ["기록하다", "적다", "작성하다"],
+  ["단서", "힌트", "실마리"],
+  ["힌트", "단서", "암시"],
+  ["아마도", "아마", "어쩌면"],
+  ["아마", "아마도", "어쩌면"],
+  ["어쩌면", "아마", "아마도"],
+];
+
+// Build fast lookup: word → Set of synonym words
+const _synonymMap = (() => {
+  const map = new Map();
+  KOREAN_SYNONYMS.forEach(group => {
+    const set = new Set(group);
+    group.forEach(w => {
+      const key = w.replace(/\s/g, "");
+      if (!map.has(key)) map.set(key, new Set());
+      set.forEach(s => map.get(key).add(s));
+    });
+  });
+  return map;
+})();
+
+function getSynonyms(word) {
+  const key = word.replace(/\s/g, "");
+  return _synonymMap.get(key) || new Set([word]);
+}
+
+function checkAnswer(input, correctList) {
+  const clean = s => s.replace(/\s/g, "").toLowerCase();
+  const cleanStripped = s => clean(stripKoreanParticles(s));
+  const inp = clean(input);
+  const inpStripped = cleanStripped(input);
+  if (!inp) return false;
+
+  // Expand the correct list with synonyms
+  const expanded = new Set();
+  correctList.forEach(ans => {
+    expanded.add(ans);
+    getSynonyms(ans).forEach(s => expanded.add(s));
+  });
+
+  for (const ans of expanded) {
+    const a = clean(ans);
+    const aStripped = cleanStripped(ans);
+    // Substring match (both directions, both raw and particle-stripped)
+    if (a.includes(inp) || inp.includes(a)) return true;
+    if (aStripped.includes(inpStripped) || inpStripped.includes(aStripped)) return true;
+    // Fuzzy match via Levenshtein (for typos or conjugation differences)
+    const longer = Math.max(aStripped.length, inpStripped.length);
+    const shorter = Math.min(aStripped.length, inpStripped.length);
+    if (shorter >= 3) {
+      const dist = levenshtein(aStripped, inpStripped);
+      if (dist / longer <= 0.22) return true;
+    }
+  }
+  return false;
+}
+function show(id) {
+  ["intro", "quiz", "done"].forEach(s => {
+    document.getElementById(s).classList.toggle("hidden", s !== id);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Mistake tracking (persists across sessions via localStorage)
+// ═══════════════════════════════════════════════════════════════════════════
+const MISTAKE_KEY = "choate_vocab_mistakes_v1";
+
+function loadMistakes() {
+  try {
+    const raw = localStorage.getItem(MISTAKE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+function saveMistakes(m) {
+  try { localStorage.setItem(MISTAKE_KEY, JSON.stringify(m)); }
+  catch (e) {}
+}
+function recordResult(wordEn, isCorrect) {
+  const m = loadMistakes();
+  if (!m[wordEn]) m[wordEn] = { wrong: 0, correct: 0, lastWrong: 0 };
+  if (isCorrect) m[wordEn].correct++;
+  else { m[wordEn].wrong++; m[wordEn].lastWrong = Date.now(); }
+  saveMistakes(m);
+}
+function getWrongWords() {
+  const m = loadMistakes();
+  // Build word map from ALL chapters for lookup
+  const wordMap = {};
+  CHAPTERS.forEach(c => c.words.forEach(w => {
+    if (!wordMap[w.en]) wordMap[w.en] = w;
+  }));
+  // Words that have been wrong at least once AND wrong >= correct
+  // (i.e., you still haven't mastered it)
+  const list = [];
+  Object.keys(m).forEach(en => {
+    const stats = m[en];
+    if (stats.wrong >= 1 && stats.wrong >= stats.correct && wordMap[en]) {
+      list.push({
+        word: wordMap[en],
+        score: stats.wrong - stats.correct,
+        lastWrong: stats.lastWrong || 0,
+      });
+    }
+  });
+  // Sort: most wrong first, then most recent wrong
+  list.sort((a, b) => b.score - a.score || b.lastWrong - a.lastWrong);
+  return list.map(x => x.word);
+}
+function clearMistakes() {
+  try { localStorage.removeItem(MISTAKE_KEY); } catch (e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Sound effects
+// ═══════════════════════════════════════════════════════════════════════════
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function playCorrectSound() {
+  const ctx = getAudioCtx();
+  const notes = [659.25, 783.99, 1046.5];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    const t0 = ctx.currentTime + i * 0.12;
+    osc.type = "triangle"; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.25, t0 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.35);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.4);
+  });
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    const t0 = ctx.currentTime + i * 0.12;
+    osc.type = "sine"; osc.frequency.value = freq * 2;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.08, t0 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.3);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.35);
+  });
+}
+function playWrongSound() {
+  const ctx = getAudioCtx();
+  [220, 185].forEach(freq => {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    const t0 = ctx.currentTime;
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(freq, t0);
+    osc.frequency.linearRampToValueAtTime(freq * 0.85, t0 + 0.6);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.12, t0 + 0.02);
+    gain.gain.linearRampToValueAtTime(0.12, t0 + 0.45);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + 0.75);
+  });
+}
+function playFanfare() {
+  const ctx = getAudioCtx();
+  const arpeggio = [
+    { f: 523.25, t: 0.0 }, { f: 659.25, t: 0.1 },
+    { f: 783.99, t: 0.2 }, { f: 1046.5, t: 0.3 },
+    { f: 523.25, t: 0.5 }, { f: 659.25, t: 0.5 },
+    { f: 783.99, t: 0.5 }, { f: 1046.5, t: 0.5 },
+  ];
+  arpeggio.forEach(({ f, t }) => {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    const t0 = ctx.currentTime + t;
+    osc.type = "triangle"; osc.frequency.value = f;
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(0.18, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + (t === 0.5 ? 1.2 : 0.25));
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + (t === 0.5 ? 1.3 : 0.3));
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TTS
+// ═══════════════════════════════════════════════════════════════════════════
+let allVoices = [];
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+function loadVoices() {
+  allVoices = window.speechSynthesis.getVoices();
+  const enVoices = allVoices.filter(v => v.lang.toLowerCase().startsWith("en"));
+  const select = document.getElementById("voice-select");
+  select.innerHTML = "";
+
+  // On mobile, Google Translate TTS URL gets CORS-blocked, so don't offer it.
+  // Use local voices only.
+  if (!IS_MOBILE) {
+    const gopt = document.createElement("option");
+    gopt.value = "google-tts";
+    gopt.textContent = "🌐 Google Translate (온라인)";
+    select.appendChild(gopt);
+  }
+
+  enVoices.forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = v.name;
+    opt.textContent = `${v.name} (${v.lang})`;
+    select.appendChild(opt);
+  });
+
+  // Best-voice priority differs by platform
+  let best;
+  if (IS_MOBILE) {
+    // Android typically has "English (United States)" or "en-us-x-..." voices
+    best =
+      enVoices.find(v => v.name.includes("en-us-x-sfg")) ||     // Android high quality
+      enVoices.find(v => v.name.includes("en-us")) ||
+      enVoices.find(v => v.lang === "en-US" && v.localService) ||
+      enVoices.find(v => v.lang === "en-US") ||
+      enVoices.find(v => v.lang.startsWith("en"));
+  } else {
+    best =
+      enVoices.find(v => v.name === "Google US English") ||
+      enVoices.find(v => v.name.includes("Samantha")) ||
+      enVoices.find(v => v.lang === "en-US") ||
+      enVoices.find(v => v.lang === "en-GB");
+  }
+
+  if (best) { select.value = best.name; state.selectedVoice = best; }
+  else if (enVoices.length > 0) { select.value = enVoices[0].name; state.selectedVoice = enVoices[0]; }
+  else { state.selectedVoice = IS_MOBILE ? null : "google-tts"; }
+}
+document.getElementById("voice-select").addEventListener("change", e => {
+  const val = e.target.value;
+  state.selectedVoice = (val === "google-tts") ? "google-tts" : allVoices.find(v => v.name === val);
+});
+
+let currentAudio = null, speakTimeout = null;
+function setSpeaking(on) {
+  const btn = document.getElementById("speaker");
+  const txt = document.getElementById("speaker-text");
+  if (btn) btn.classList.toggle("playing", on);
+  if (txt) txt.textContent = on ? "재생 중..." : "발음 듣기";
+}
+function speak(text) {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (speakTimeout) clearTimeout(speakTimeout);
+  setSpeaking(true);
+  speakTimeout = setTimeout(() => setSpeaking(false), 6000);
+  const done = () => { clearTimeout(speakTimeout); setSpeaking(false); };
+
+  // On mobile, Google Translate TTS URL is CORS-blocked. Use Web Speech API only.
+  if (state.selectedVoice === "google-tts" && !IS_MOBILE) {
+    playGoogleTTS(text, done);
+    return;
+  }
+
+  const synth = window.speechSynthesis;
+  if (!synth) { done(); return; }
+
+  // Mobile Chrome bug: need to cancel() twice and wait a beat before speak()
+  synth.cancel();
+
+  const doSpeak = () => {
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = "en-US";
+    if (state.selectedVoice && state.selectedVoice !== "google-tts") {
+      utt.voice = state.selectedVoice;
+    }
+    utt.rate = 0.85; utt.pitch = 1; utt.volume = 1;
+
+    let started = false;
+    utt.onstart = () => { started = true; };
+    utt.onend = done;
+    utt.onerror = (e) => {
+      // On desktop, fall back to Google TTS URL if Web Speech fails
+      if (!started && !IS_MOBILE) playGoogleTTS(text, done);
+      else done();
+    };
+    try { synth.speak(utt); } catch (e) { done(); }
+
+    // Desktop fallback timer
+    if (!IS_MOBILE) {
+      setTimeout(() => {
+        if (!started) { synth.cancel(); playGoogleTTS(text, done); }
+      }, 1500);
+    }
+  };
+
+  // Mobile needs a tiny delay after cancel() for speak() to actually fire
+  setTimeout(doSpeak, IS_MOBILE ? 100 : 0);
+}
+function playGoogleTTS(text, onDone) {
+  const enc = encodeURIComponent(text);
+  const urls = [
+    `https://translate.googleapis.com/translate_tts?ie=UTF-8&q=${enc}&tl=en-US&client=gtx`,
+    `https://translate.google.com/translate_tts?ie=UTF-8&q=${enc}&tl=en-US&client=tw-ob`,
+  ];
+  let i = 0;
+  const next = () => {
+    if (i >= urls.length) { onDone(); return; }
+    const a = new Audio(urls[i++]);
+    currentAudio = a;
+    a.onended = onDone;
+    a.onerror = next;
+    a.play().catch(next);
+  };
+  next();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Pronunciation test (Speech Recognition)
+// ═══════════════════════════════════════════════════════════════════════════
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognitionActive = false;
+
+// ── Continuous recognition (started ONCE, never stopped until home) ──
+// This avoids Chrome's re-prompt on each recognition.start() call on file:// URLs.
+let _persistentRec = null;
+let _nextResultHandler = null;
+let _currentRecLang = null;
+let _recInFlight = false;
+
+async function ensurePersistentRec() {
+  if (_persistentRec) return _persistentRec;
+  if (!SpeechRec) return null;
+
+  const ok = await ensureMicPermission();
+  if (!ok) return null;
+
+  const rec = new SpeechRec();
+  // On mobile, continuous=true is unreliable — use short-session recognition
+  // backed by the persistent MediaStream for permission retention.
+  rec.continuous = !IS_MOBILE;
+  rec.interimResults = false;
+  rec.maxAlternatives = 3;
+  rec.lang = "en-US";
+  _currentRecLang = "en-US";
+
+  rec.onresult = (e) => {
+    if (!_nextResultHandler) return;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const r = e.results[i];
+      if (!r.isFinal) continue;
+      const alts = [];
+      for (let j = 0; j < r.length; j++) {
+        alts.push({ transcript: r[j].transcript, confidence: r[j].confidence });
+      }
+      const h = _nextResultHandler;
+      _nextResultHandler = null;
+      h(alts, null);
+      return;
+    }
+  };
+
+  rec.onerror = (e) => {
+    if (e.error === "no-speech" || e.error === "aborted") return;
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      _micPermissionReady = false;
+      _persistentRec = null;
+      if (_nextResultHandler) {
+        const h = _nextResultHandler;
+        _nextResultHandler = null;
+        h(null, e.error);
+      }
+      return;
+    }
+    if (_nextResultHandler) {
+      const h = _nextResultHandler;
+      _nextResultHandler = null;
+      h(null, e.error);
+    }
+  };
+
+  rec.onend = () => {
+    // On desktop, continuous=true gives us auto-restart for free, but we still
+    // restart just in case. On mobile (continuous=false) we don't auto-restart;
+    // each listenWith() call will call start() itself, and the MediaStream keeps
+    // permission alive.
+    if (!IS_MOBILE && _persistentRec === rec && _micPermissionReady) {
+      setTimeout(() => {
+        if (_persistentRec === rec) {
+          try { rec.start(); } catch (err) { /* already running */ }
+        }
+      }, 80);
+    }
+  };
+
+  _persistentRec = rec;
+  // Only start immediately on desktop (continuous mode)
+  if (!IS_MOBILE) {
+    try { rec.start(); } catch (e) {}
+  }
+  return rec;
+}
+
+async function listenWith(lang, handler) {
+  const rec = await ensurePersistentRec();
+  if (!rec) { handler(null, "no-support"); return; }
+
+  // Wrap handler so we can resume the keepalive after recognition ends
+  const wrappedHandler = async (alts, err) => {
+    // Give the SpeechRecognition a moment to fully release the mic before we reclaim it
+    setTimeout(() => { resumeMicKeepalive(); }, 200);
+    handler(alts, err);
+  };
+  _nextResultHandler = wrappedHandler;
+
+  // CRITICAL: Release the mic from our AudioContext so SpeechRecognition can grab it
+  await suspendMicKeepalive();
+
+  if (IS_MOBILE) {
+    // Mobile: explicitly start() each time (continuous=false)
+    rec.lang = lang;
+    _currentRecLang = lang;
+    try {
+      rec.start();
+    } catch (e) {
+      // Already running — stop and retry after a beat
+      try { rec.stop(); } catch (e2) {}
+      setTimeout(() => {
+        try { rec.start(); } catch (e3) {
+          resumeMicKeepalive();
+          wrappedHandler(null, "start-failed");
+        }
+      }, 200);
+    }
+  } else {
+    // Desktop: continuous mode is already running; just swap lang if needed
+    if (_currentRecLang !== lang) {
+      _currentRecLang = lang;
+      rec.lang = lang;
+      try { rec.stop(); } catch (e) {}
+      // onend will auto-restart with new lang
+    }
+  }
+}
+
+function cancelListening() {
+  _nextResultHandler = null;
+  // User cancelled — resume mic keepalive so permission is retained
+  setTimeout(() => { resumeMicKeepalive(); }, 200);
+}
+
+function supportsPronunciationTest() {
+  return !!SpeechRec;
+}
+
+// Pre-warm microphone permission via getUserMedia.
+// IMPORTANT: On mobile (Android) and file:// URLs, Chrome revokes mic permission
+// when the stream closes OR when it's idle. To keep permission, we:
+// 1. Hold the MediaStream reference (don't let it be GC'd)
+// 2. Connect it to an AudioContext node so the browser treats it as "in use"
+// 3. Never stop the tracks until user explicitly returns home
+//
+// HOWEVER: While SpeechRecognition is actively listening, it needs exclusive
+// access to the mic. We must SUSPEND the AudioContext during recognition and
+// RESUME it afterward. Otherwise the SpeechRecognition gets silence.
+let _micPermissionReady = false;
+let _liveMicStream = null;
+let _micAudioCtx = null;
+let _micSourceNode = null;
+
+async function ensureMicPermission() {
+  // If we already have an active stream, permission is still granted
+  if (_micPermissionReady && _liveMicStream && _liveMicStream.active) return true;
+  _micPermissionReady = false;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    _micPermissionReady = true;
+    return true;
+  }
+  try {
+    _liveMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    _micPermissionReady = true;
+
+    // Connect the stream to an AudioContext so it stays "active" between
+    // recognition sessions. This preserves the mic permission on Android Chrome.
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) {
+        _micAudioCtx = new AC();
+        _micSourceNode = _micAudioCtx.createMediaStreamSource(_liveMicStream);
+        const mutedGain = _micAudioCtx.createGain();
+        mutedGain.gain.value = 0; // Silence the output
+        _micSourceNode.connect(mutedGain);
+        mutedGain.connect(_micAudioCtx.destination);
+      }
+    } catch (e) { /* AudioContext setup failure is non-fatal */ }
+
+    // Watch for the stream dying (e.g., user revokes mic via browser UI)
+    _liveMicStream.getAudioTracks().forEach(track => {
+      track.onended = () => {
+        _micPermissionReady = false;
+        _liveMicStream = null;
+      };
+    });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// CRITICAL: SpeechRecognition and AudioContext both want the mic. Call this
+// BEFORE starting recognition to release the mic, and resumeMicKeepalive()
+// AFTER recognition ends to re-lock permission.
+async function suspendMicKeepalive() {
+  if (_micAudioCtx && _micAudioCtx.state !== "suspended") {
+    try { await _micAudioCtx.suspend(); } catch (e) {}
+  }
+}
+async function resumeMicKeepalive() {
+  if (_micAudioCtx && _micAudioCtx.state === "suspended") {
+    try { await _micAudioCtx.resume(); } catch (e) {}
+  }
+}
+
+function releaseMic() {
+  // Disconnect AudioContext nodes
+  if (_micSourceNode) { try { _micSourceNode.disconnect(); } catch (e) {} _micSourceNode = null; }
+  if (_micAudioCtx) { try { _micAudioCtx.close(); } catch (e) {} _micAudioCtx = null; }
+  if (_liveMicStream) {
+    try { _liveMicStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    _liveMicStream = null;
+  }
+  _micPermissionReady = false;
+}
+
+function supportsPronunciationTest() {
+  return !!SpeechRec;
+}
+
+function normalizeForCompare(s) {
+  return s.toLowerCase().replace(/[^a-z\s]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function gradePronunciation(heard, target) {
+  const h = normalizeForCompare(heard);
+  const t = normalizeForCompare(target);
+  if (!h) return { level: "bad", label: "소리를 못 들었어요", emoji: "🔇" };
+  if (h === t) return { level: "perfect", label: "완벽해요!", emoji: "💯" };
+  // Try word-by-word for multi-word phrases
+  const dist = levenshtein(h, t);
+  const ratio = dist / Math.max(t.length, 1);
+  if (ratio <= 0.2) return { level: "good", label: "아주 좋아요!", emoji: "👍" };
+  if (ratio <= 0.4) return { level: "close", label: "비슷해요", emoji: "🎯" };
+  return { level: "bad", label: "다시 시도해보세요", emoji: "🔄" };
+}
+
+function setPronBtn(state) {
+  const btn = document.getElementById("pron-btn");
+  const txt = document.getElementById("pron-btn-text");
+  if (!btn) return;
+  btn.classList.toggle("listening", state === "listening");
+  if (state === "listening") txt.textContent = "듣는 중...";
+  else if (state === "processing") txt.textContent = "분석 중...";
+  else txt.textContent = "발음 테스트";
+}
+
+function showPronResult(html, level) {
+  const el = document.getElementById("pron-result");
+  el.className = `pron-result ${level || ""}`;
+  el.innerHTML = html;
+  el.classList.remove("hidden");
+}
+
+function hidePronResult() {
+  const el = document.getElementById("pron-result");
+  if (el) el.classList.add("hidden");
+}
+
+async function startPronunciationTest() {
+  if (!supportsPronunciationTest()) {
+    showPronResult(
+      `<span class="big">⚠️</span>이 브라우저는 음성 인식을 지원하지 않아요.<br>Chrome이나 Edge를 사용해주세요.`,
+      "bad"
+    );
+    return;
+  }
+  if (recognitionActive) {
+    cancelListening();
+    recognitionActive = false;
+    setPronBtn("idle");
+    return;
+  }
+  const word = state.queue[state.idx];
+  if (!word) return;
+
+  // Stop any TTS playback first
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (currentAudio) currentAudio.pause();
+
+  hidePronResult();
+  recognitionActive = true;
+  setPronBtn("listening");
+
+  // Safety timeout in case no speech detected
+  const timeoutId = setTimeout(() => {
+    if (recognitionActive) {
+      cancelListening();
+      recognitionActive = false;
+      setPronBtn("idle");
+      showPronResult(`<span class="big">🤔</span>소리를 잡지 못했어요. 다시 시도해보세요`, "bad");
+    }
+  }, 8000);
+
+  listenWith("en-US", (alts, err) => {
+    clearTimeout(timeoutId);
+    recognitionActive = false;
+    setPronBtn("idle");
+    if (err) {
+      let msg = "오류가 발생했어요";
+      if (err === "not-allowed" || err === "service-not-allowed") {
+        msg = "마이크 권한을 허용해주세요 🎤";
+      } else if (err === "no-support") {
+        msg = "브라우저가 음성 인식을 지원하지 않아요";
+      }
+      showPronResult(`<span class="big">⚠️</span>${msg}`, "bad");
+      return;
+    }
+    if (!alts || alts.length === 0) {
+      showPronResult(`<span class="big">🤔</span>들린 게 없어요`, "bad");
+      return;
+    }
+    let best = null;
+    const target = word.en;
+    for (const alt of alts) {
+      const grade = gradePronunciation(alt.transcript, target);
+      if (!best || gradeRank(grade.level) > gradeRank(best.grade.level)) {
+        best = { transcript: alt.transcript, grade };
+      }
+    }
+    showPronResult(
+      `<span class="big">${best.grade.emoji}</span>${best.grade.label}
+       <span class="heard">들린 단어: "${best.transcript}"</span>`,
+      best.grade.level
+    );
+  });
+}
+
+function gradeRank(level) {
+  return { perfect: 4, good: 3, close: 2, bad: 1 }[level] || 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Korean voice answer (speak Korean meaning instead of typing)
+// ═══════════════════════════════════════════════════════════════════════════
+function showVoiceStatus(text, isError) {
+  const el = document.getElementById("voice-status");
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = isError ? "#e57373" : "#81c784";
+  el.classList.remove("hidden");
+  if (text) {
+    setTimeout(() => el.classList.add("hidden"), 3000);
+  }
+}
+
+function setAnswerMic(listening) {
+  const btn = document.getElementById("answer-mic");
+  if (!btn) return;
+  btn.classList.toggle("listening", listening);
+  btn.innerHTML = listening ? "🔴" : "🎤";
+}
+
+async function startKoreanAnswer() {
+  if (!SpeechRec) {
+    showVoiceStatus("이 브라우저는 음성 인식 미지원 (Chrome 권장)", true);
+    return;
+  }
+  if (state.feedback) return;
+
+  // If already listening, cancel
+  if (recognitionActive) {
+    cancelListening();
+    recognitionActive = false;
+    setAnswerMic(false);
+    return;
+  }
+
+  // Stop any TTS playback first
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (currentAudio) currentAudio.pause();
+
+  recognitionActive = true;
+  setAnswerMic(true);
+  showVoiceStatus("🎤 듣고 있어요... 한국어로 말하세요", false);
+  document.getElementById("voice-status").style.color = "#64b5f6";
+
+  // Safety timeout
+  const timeoutId = setTimeout(() => {
+    if (recognitionActive) {
+      cancelListening();
+      recognitionActive = false;
+      setAnswerMic(false);
+      showVoiceStatus("🤔 소리를 잡지 못했어요", true);
+    }
+  }, 8000);
+
+  listenWith("ko-KR", (alts, err) => {
+    clearTimeout(timeoutId);
+    recognitionActive = false;
+    setAnswerMic(false);
+    if (err) {
+      let msg = "오류";
+      if (err === "not-allowed" || err === "service-not-allowed") {
+        msg = "⚠️ 마이크 권한을 허용해주세요";
+      } else if (err === "no-support") {
+        msg = "⚠️ 브라우저 미지원";
+      } else if (err === "network") {
+        msg = "⚠️ 네트워크 오류";
+      } else if (err === "audio-capture") {
+        msg = "⚠️ 마이크를 찾을 수 없어요";
+      } else if (err === "language-not-supported") {
+        msg = "⚠️ 한국어 인식 미지원";
+      }
+      showVoiceStatus(msg, true);
+      return;
+    }
+    if (!alts || alts.length === 0) {
+      showVoiceStatus("🤔 들린 말이 없어요", true);
+      return;
+    }
+    // Pick the alternative that best matches the answer
+    const word = state.queue[state.idx];
+    let bestTranscript = alts[0].transcript;
+    if (word) {
+      for (const alt of alts) {
+        if (checkAnswer(alt.transcript, word.ko)) {
+          bestTranscript = alt.transcript;
+          break;
+        }
+      }
+    }
+    document.getElementById("answer").value = bestTranscript;
+    showVoiceStatus(`들린 말: "${bestTranscript}"`, false);
+    setTimeout(() => { if (!state.feedback) submit(); }, 500);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Chapter selector
+// ═══════════════════════════════════════════════════════════════════════════
+const MISTAKES_CHAPTER_ID = "__mistakes__";
+
+function renderChapterGrid() {
+  const grid = document.getElementById("chapter-grid");
+  grid.innerHTML = "";
+
+  // Special "frequently wrong" card — always visible
+  const wrongWords = getWrongWords();
+  const wrongCount = wrongWords.length;
+  const specialCard = document.createElement("button");
+  specialCard.className = "chapter-card special-card";
+  if (wrongCount === 0) specialCard.classList.add("disabled");
+  if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID) && wrongCount > 0) {
+    specialCard.classList.add("selected");
+  }
+  specialCard.innerHTML = `
+    ${wrongCount > 0 ? '<div class="reset-x" title="오답 기록 초기화">×</div>' : ''}
+    <div class="check">${state.selectedChapterIds.has(MISTAKES_CHAPTER_ID) && wrongCount > 0 ? "✓" : ""}</div>
+    <div class="ch-title">🔥 자주 틀린 단어</div>
+    <div class="ch-count">${wrongCount === 0 ? "아직 없음" : wrongCount + "개 단어"}</div>
+  `;
+  specialCard.addEventListener("click", (e) => {
+    if (wrongCount === 0) return;
+    // X button → clear mistakes
+    if (e.target.classList.contains("reset-x")) {
+      e.stopPropagation();
+      if (confirm("오답 기록을 모두 초기화할까요?\n(지금까지 틀린 단어 데이터가 삭제됩니다)")) {
+        clearMistakes();
+        state.selectedChapterIds.delete(MISTAKES_CHAPTER_ID);
+        renderChapterGrid();
+        updateSelectedCount();
+      }
+      return;
+    }
+    if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID)) {
+      state.selectedChapterIds.delete(MISTAKES_CHAPTER_ID);
+    } else {
+      state.selectedChapterIds.add(MISTAKES_CHAPTER_ID);
+    }
+    renderChapterGrid();
+    updateSelectedCount();
+  });
+  grid.appendChild(specialCard);
+
+  CHAPTERS.forEach(ch => {
+    const card = document.createElement("button");
+    card.className = "chapter-card";
+    if (state.selectedChapterIds.has(ch.id)) card.classList.add("selected");
+    card.innerHTML = `
+      <div class="check">${state.selectedChapterIds.has(ch.id) ? "✓" : ""}</div>
+      <div class="ch-title">${ch.title}</div>
+      <div class="ch-count">${ch.words.length}개 단어</div>
+    `;
+    card.addEventListener("click", () => {
+      if (state.selectedChapterIds.has(ch.id)) state.selectedChapterIds.delete(ch.id);
+      else state.selectedChapterIds.add(ch.id);
+      renderChapterGrid();
+      updateSelectedCount();
+    });
+    grid.appendChild(card);
+  });
+}
+function updateSelectedCount() {
+  let total = 0;
+  if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID)) {
+    total += getWrongWords().length;
+  }
+  CHAPTERS
+    .filter(c => state.selectedChapterIds.has(c.id))
+    .forEach(c => total += c.words.length);
+  document.getElementById("selected-count").textContent =
+    total === 0 ? "챕터를 선택해주세요" : `${total}개 단어 선택됨`;
+  document.getElementById("start-btn").disabled = total === 0;
+}
+document.getElementById("select-all-btn").addEventListener("click", () => {
+  CHAPTERS.forEach(c => state.selectedChapterIds.add(c.id));
+  renderChapterGrid(); updateSelectedCount();
+});
+document.getElementById("clear-all-btn").addEventListener("click", () => {
+  state.selectedChapterIds.clear();
+  renderChapterGrid(); updateSelectedCount();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Quiz flow
+// ═══════════════════════════════════════════════════════════════════════════
+function getSelectedWords() {
+  const seen = new Set();
+  const words = [];
+  // Mistake words come first if selected
+  if (state.selectedChapterIds.has(MISTAKES_CHAPTER_ID)) {
+    getWrongWords().forEach(w => {
+      const key = w.en.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); words.push(w); }
+    });
+  }
+  CHAPTERS
+    .filter(c => state.selectedChapterIds.has(c.id))
+    .forEach(c => c.words.forEach(w => {
+      const key = w.en.toLowerCase();
+      if (!seen.has(key)) { seen.add(key); words.push(w); }
+    }));
+  return words;
+}
+
+function startQuiz() {
+  const words = getSelectedWords();
+  if (words.length === 0) return;
+  state.queue = shuffle(words);
+  state.idx = 0; state.feedback = null;
+  state.wrongs = new Set();
+  state.correct = 0; state.attempts = 0; state.round = 1;
+  show("quiz");
+  render();
+  speak(state.queue[0].en);
+}
+
+function render() {
+  const word = state.queue[state.idx];
+  if (!word) return;
+  document.getElementById("round-chip").textContent = `R${state.round}`;
+  document.getElementById("correct-chip").textContent = `✓ ${state.correct}`;
+  document.getElementById("pos").textContent = state.idx + 1;
+  document.getElementById("qtotal").textContent = state.queue.length;
+  document.getElementById("bar").style.width = `${(state.idx / state.queue.length) * 100}%`;
+
+  const wordEl = document.getElementById("word");
+  wordEl.textContent = word.en;
+  wordEl.classList.remove("long", "vlong");
+  if (word.en.length > 22) wordEl.classList.add("vlong");
+  else if (word.en.length > 14) wordEl.classList.add("long");
+
+  document.getElementById("s-attempts").textContent = state.attempts;
+  document.getElementById("s-correct").textContent = state.correct;
+  document.getElementById("s-wrong").textContent = state.attempts - state.correct;
+
+  const card = document.getElementById("card");
+  const inputArea = document.getElementById("input-area");
+  const fbArea = document.getElementById("feedback-area");
+  card.classList.remove("ok", "ng");
+
+  if (!state.feedback) {
+    hidePronResult();
+    // Enable/disable pron button based on support
+    const pronBtn = document.getElementById("pron-btn");
+    if (!supportsPronunciationTest()) {
+      pronBtn.style.display = "none";
+    }
+    // Hide Korean answer mic if unsupported
+    const answerMic = document.getElementById("answer-mic");
+    if (!SpeechRec) answerMic.style.display = "none";
+    // Hide any stale voice status
+    const vs = document.getElementById("voice-status");
+    if (vs) vs.classList.add("hidden");
+    inputArea.classList.remove("hidden");
+    fbArea.classList.add("hidden");
+    document.getElementById("answer").value = "";
+    setTimeout(() => document.getElementById("answer").focus(), 100);
+  } else {
+    inputArea.classList.add("hidden");
+    fbArea.classList.remove("hidden");
+    card.classList.add(state.feedback);
+    const isLast = state.idx + 1 >= state.queue.length;
+    const nextText = isLast ? "결과 보기 →" : "다음 →";
+    if (state.feedback === "ok") {
+      fbArea.innerHTML = `
+        <div style="animation: pop .3s ease">
+          <div class="feedback-icon">🎉</div>
+          <div class="feedback-title ok">정답!</div>
+          <div class="feedback-answer ok">${word.ko[0]}</div>
+          <button class="btn-outline" style="color:#81c784" id="next-btn">${nextText}</button>
+        </div>`;
+    } else {
+      fbArea.innerHTML = `
+        <div style="animation: shake .4s ease">
+          <div class="feedback-icon">😅</div>
+          <div class="feedback-title ng">틀렸어요! 정답:</div>
+          <div class="feedback-answer">${word.ko.join(" / ")}</div>
+          <div class="feedback-note">다음 라운드에 다시 나옵니다</div>
+          <button class="btn-outline" style="color:#e57373" id="next-btn">${nextText}</button>
+        </div>`;
+    }
+    document.getElementById("next-btn").addEventListener("click", nextQuestion);
+  }
+}
+
+function submit() {
+  if (state.feedback) return;
+  const input = document.getElementById("answer").value;
+  if (!input.trim()) return;
+  const word = state.queue[state.idx];
+  const ok = checkAnswer(input.trim(), word.ko);
+  state.attempts++;
+  recordResult(word.en, ok);
+  if (ok) { state.correct++; state.feedback = "ok"; try { playCorrectSound(); } catch(e){} }
+  else { state.wrongs.add(word.en); state.feedback = "ng"; try { playWrongSound(); } catch(e){} }
+  render();
+}
+
+function nextQuestion() {
+  const nextIdx = state.idx + 1;
+  if (nextIdx >= state.queue.length) {
+    const wrongWords = state.queue.filter(w => state.wrongs.has(w.en));
+    if (wrongWords.length === 0) { showDone(); return; }
+    state.queue = shuffle(wrongWords);
+    state.wrongs = new Set();
+    state.idx = 0;
+    state.round++;
+    state.feedback = null;
+  } else {
+    state.idx = nextIdx;
+    state.feedback = null;
+  }
+  render();
+  speak(state.queue[state.idx].en);
+}
+
+function showDone() {
+  const accuracy = Math.round(state.correct / Math.max(state.attempts, 1) * 100);
+  const items = [
+    ["총 시도", state.attempts + "회", "#8899aa"],
+    ["정답", state.correct + "개", "#81c784"],
+    ["라운드", state.round + "R", "#FFB703"],
+    ["정확도", accuracy + "%", "#64b5f6"],
+  ];
+  document.getElementById("done-stats").innerHTML = items.map(([l, v, c]) =>
+    `<div class="done-stat"><div class="n" style="color:${c}">${v}</div><div class="l">${l}</div></div>`
+  ).join("");
+  show("done");
+  try { playFanfare(); } catch(e) {}
+}
+
+function goHome() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (currentAudio) currentAudio.pause();
+  // Fully shut down persistent recognition (allows tab mic indicator to turn off)
+  recognitionActive = false;
+  cancelListening();
+  if (_persistentRec) {
+    const rec = _persistentRec;
+    _persistentRec = null; // Prevent onend auto-restart
+    try { rec.stop(); } catch (e) {}
+    try { rec.abort(); } catch (e) {}
+  }
+  // Release mic stream (turns off the mic indicator in browser tab)
+  releaseMic();
+  // Refresh wrong-words list when returning home (may have new mistakes)
+  renderChapterGrid();
+  updateSelectedCount();
+  show("intro");
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Event listeners
+// ═══════════════════════════════════════════════════════════════════════════
+document.getElementById("start-btn").addEventListener("click", startQuiz);
+document.getElementById("restart-btn").addEventListener("click", startQuiz);
+document.getElementById("submit-btn").addEventListener("click", submit);
+document.getElementById("home-btn").addEventListener("click", goHome);
+document.getElementById("home-btn-2").addEventListener("click", goHome);
+document.getElementById("answer").addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+document.getElementById("speaker").addEventListener("click", () => {
+  const word = state.queue[state.idx];
+  if (word) speak(word.en);
+});
+document.getElementById("pron-btn").addEventListener("click", startPronunciationTest);
+document.getElementById("answer-mic").addEventListener("click", startKoreanAnswer);
+document.getElementById("test-voice").addEventListener("click", () => {
+  speak("Hello! This is a test of the English voice.");
+});
+
+// Preselect Ch. 17-18 for first-time users
+state.selectedChapterIds.add("ch17-18");
+renderChapterGrid();
+updateSelectedCount();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Mic support notice (adapts to browser/protocol/platform)
+// ═══════════════════════════════════════════════════════════════════════════
+function setupMicNotice() {
+  const notice = document.getElementById("mic-notice");
+  if (!notice) return;
+
+  const isFile = window.location.protocol === "file:";
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isSecure = window.isSecureContext;
+  const hasSpeechRec = !!SpeechRec;
+
+  if (hasSpeechRec && isSecure) {
+    // Everything works
+    notice.className = "mic-notice ok";
+    notice.innerHTML = `
+      💡 <b>🎤 버튼을 처음 누르면 마이크 권한을 허용해주세요.</b><br>
+      퀴즈 중엔 탭에 마이크 아이콘이 계속 켜져 있어요 (권한 유지용).
+    `;
+    notice.classList.remove("hidden");
+    return;
+  }
+
+  if (!hasSpeechRec && isMobile && isFile) {
+    // Mobile + file:// — the common blocker
+    notice.className = "mic-notice warn";
+    notice.innerHTML = `
+      ⚠️ <b>모바일에서 음성 인식이 차단됐어요.</b><br>
+      안드로이드 Chrome은 <code>file://</code> 로 열린 파일에서는 보안상 마이크 접근을 허용하지 않아요.<br>
+      키보드로는 계속 퀴즈를 풀 수 있어요.
+      <details>
+        <summary>🔧 모바일에서 음성 인식 켜는 방법</summary>
+        <div class="steps">
+          <b>가장 쉬운 방법 — Netlify Drop (30초):</b><br>
+          1. PC에서 <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a> 열기<br>
+          2. 이 HTML 파일을 페이지에 드래그<br>
+          3. 받은 <code>https://...netlify.app</code> 주소를 모바일 Chrome으로 접속<br>
+          4. 이제 🎤 가 작동해요! (계정 필요 없음)<br><br>
+          <b>또는 — GitHub Pages:</b><br>
+          GitHub 저장소에 파일 업로드 → Settings → Pages 활성화 → HTTPS URL로 접속
+        </div>
+      </details>
+    `;
+    notice.classList.remove("hidden");
+    return;
+  }
+
+  if (!hasSpeechRec) {
+    // Other unsupported cases
+    notice.className = "mic-notice warn";
+    notice.innerHTML = `
+      ⚠️ <b>이 브라우저는 음성 인식을 지원하지 않아요.</b><br>
+      Chrome 또는 Edge 사용을 권장해요 (Firefox는 미지원).<br>
+      키보드로는 계속 퀴즈를 풀 수 있어요.
+    `;
+    notice.classList.remove("hidden");
+    return;
+  }
+
+  if (!isSecure && isFile) {
+    // Desktop file:// - works but with extra prompts
+    notice.className = "mic-notice warn";
+    notice.innerHTML = `
+      ⚠️ <b>로컬 파일(<code>file://</code>)로 여셨네요.</b><br>
+      Chrome이 매번 마이크 권한을 물어볼 수 있어요.
+      <details>
+        <summary>🔧 해결 방법 (프롬프트 한 번만 나오게)</summary>
+        <div class="steps">
+          <b>옵션 1 — Netlify Drop (가장 쉬움):</b><br>
+          <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a> 에 이 파일 드래그 → HTTPS URL로 접속<br><br>
+          <b>옵션 2 — 로컬 서버 (PC에 Python이 있을 때):</b><br>
+          터미널에서 <code>python -m http.server 8000</code> 실행 후
+          <code>http://localhost:8000</code> 접속
+        </div>
+      </details>
+    `;
+    notice.classList.remove("hidden");
+    return;
+  }
+}
+setupMicNotice();
+
+if (window.speechSynthesis) {
+  loadVoices();
+  window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+  setTimeout(loadVoices, 300);
+}
+</script>
+</body>
+</html>
